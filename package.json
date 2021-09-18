@@ -1,0 +1,21 @@
+{
+  "name": "monpetitplacement-sdk",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Julien Ferrier",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "jest": "^27.2.0",
+    "prettier": "^2.4.1",
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "zod": "^3.8.2"
+  }
+}
