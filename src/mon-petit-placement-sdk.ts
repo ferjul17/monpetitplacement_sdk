@@ -28,6 +28,7 @@ export class MonPetitPlacementSdk {
       username,
       password,
     });
+
     const output = await AuthenticationTokenOutput.parseAsync(res.data);
 
     return output;
