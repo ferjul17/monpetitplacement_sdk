@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest",
     "lint": "eslint . --cache",
-    "format": "prettier . --write"
+    "format": "prettier . --write",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "Julien Ferrier",
@@ -29,7 +30,8 @@
     "prettier": "2.4.1",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.3",
+    "husky": "^7.0.0"
   },
   "dependencies": {
     "axios": "^0.21.4",
