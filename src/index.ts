@@ -1,1 +1,1 @@
-export { MonPetitPlacementSdk } from './mon-petit-placement-sdk';
+export { Api } from './api';
