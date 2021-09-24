@@ -29,6 +29,10 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 Please make sure to update tests as appropriate.
 
+## Referral code
+
+If you don't already have a MonPetitPlacement account and you want to try, you can subscribe with my referral code [FERRIERMPP](http://www.monpetitplacement.fr/fr/affiliate/sea?cp=FERRIERMPP).
+
 ## License
 
 [MIT](./LICENSE)
