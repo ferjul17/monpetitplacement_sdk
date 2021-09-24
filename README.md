@@ -1,3 +1,8 @@
+## ⚠️ Work in Progress ⚠️
+
+Please keep in mind that this is a work in progress.
+There is still a lot of work to be done.
+
 # MonPetitPlacement SDK
 
 MonPetitPlacement is a French company that offers a financial investment service.  
