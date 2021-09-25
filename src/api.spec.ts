@@ -5,6 +5,7 @@ import { z, ZodError } from 'zod';
 import { Api } from './api';
 import { UsersInput, UsersOutput } from './schema/v1/users';
 import { UserKycsInput, UserKycsOutput } from './schema/v1/user_kycs';
+import { AdviceInput, AdviceOutput } from './schema/v1/advice';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -178,6 +179,154 @@ describe('Api', () => {
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
           url: `v1/users/${input.userId}/user_kycs`,
+        })
+      );
+    });
+  });
+
+  describe('getAdvice', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof AdviceInput> = {
+        token: faker.datatype.string(100),
+        adviceId: faker.datatype.number(),
+      };
+      const mockedResponse: z.infer<typeof AdviceOutput> = {
+        '@context': '/v1/contexts/Advice',
+        '@id': `/v1/advice/${input.adviceId}`,
+        '@type': 'Advice',
+        id: `${input.adviceId}`,
+        status: faker.helpers.randomize(['pending']),
+        advisor: {
+          '@id': `/v1/users/${faker.datatype.number()}`,
+          '@type': 'User',
+          id: faker.datatype.number(),
+          username: faker.internet.email(),
+          email: faker.internet.email(),
+          enabled: faker.datatype.boolean(),
+          lastLogin: faker.date.recent().toISOString(),
+          roles: [],
+          firstname: faker.name.firstName(),
+          lastname: faker.name.firstName(),
+          gender: faker.helpers.randomize(['man', 'woman']),
+          phone: faker.phone.phoneNumber(),
+          validatedAt: faker.date.recent().toISOString(),
+          birthdate: faker.date.past().toISOString(),
+          picture: faker.internet.url(),
+          language: [],
+          calendlyCalendarUrl: faker.internet.url(),
+          uuid: faker.datatype.uuid(),
+          createdAt: faker.date.past().toISOString(),
+          updatedAt: faker.date.recent().toISOString(),
+        },
+        language: [],
+        video: faker.datatype.string(),
+        generalAdvice: faker.datatype.string(),
+        buyAdvice: faker.datatype.string(),
+        sellAdvice: faker.datatype.string(),
+        dashboardAdvice: faker.datatype.string(),
+        inconsistent: faker.datatype.boolean(),
+        suggestedInvestmentAccountProvider: faker.datatype.string(),
+        suggestedAdvicePackage: {
+          '@id': faker.datatype.string(),
+          '@type': faker.datatype.string(),
+          id: faker.datatype.number(),
+          slug: faker.datatype.string(),
+          enabled: faker.datatype.boolean(),
+          position: faker.datatype.number(),
+          title: faker.datatype.string(),
+          subtitle: faker.datatype.string(),
+          description: faker.datatype.string(),
+          picture: faker.datatype.string(),
+          bulletPoints: [],
+          ctaText: faker.datatype.string(),
+          defaultAdviceSubpackage: {
+            '@id': faker.datatype.string(),
+            '@type': faker.datatype.string(),
+            id: faker.datatype.number(),
+            slug: faker.datatype.string(),
+            enabled: faker.datatype.boolean(),
+            position: faker.datatype.number(),
+            title: faker.datatype.string(),
+            subtitle: faker.datatype.string(),
+            description: faker.datatype.string(),
+            picture: faker.datatype.string(),
+            ctaText: faker.datatype.string(),
+            waitingAdviceVideo: faker.datatype.string(),
+            genericVideo: faker.datatype.string(),
+          },
+        },
+        selectedAdvicePackage: {
+          '@id': faker.datatype.string(),
+          '@type': faker.datatype.string(),
+          id: faker.datatype.number(),
+          slug: faker.datatype.string(),
+          enabled: faker.datatype.boolean(),
+          position: faker.datatype.number(),
+          title: faker.datatype.string(),
+          subtitle: faker.datatype.string(),
+          description: faker.datatype.string(),
+          picture: faker.datatype.string(),
+          bulletPoints: [],
+          ctaText: faker.datatype.string(),
+          defaultAdviceSubpackage: {
+            '@id': faker.datatype.string(),
+            '@type': faker.datatype.string(),
+            id: faker.datatype.number(),
+            slug: faker.datatype.string(),
+            enabled: faker.datatype.boolean(),
+            position: faker.datatype.number(),
+            title: faker.datatype.string(),
+            subtitle: faker.datatype.string(),
+            description: faker.datatype.string(),
+            picture: faker.datatype.string(),
+            ctaText: faker.datatype.string(),
+            waitingAdviceVideo: faker.datatype.string(),
+            genericVideo: faker.datatype.string(),
+          },
+        },
+        suggestedAdviceSubpackage: {
+          '@id': faker.datatype.string(),
+          '@type': faker.datatype.string(),
+          id: faker.datatype.number(),
+          slug: faker.datatype.string(),
+          enabled: faker.datatype.boolean(),
+          position: faker.datatype.number(),
+          title: faker.datatype.string(),
+          subtitle: faker.datatype.string(),
+          description: faker.datatype.string(),
+          picture: faker.datatype.string(),
+          ctaText: faker.datatype.string(),
+          waitingAdviceVideo: faker.datatype.string(),
+        },
+        selectedAdviceSubpackage: {
+          '@id': faker.datatype.string(),
+          '@type': faker.datatype.string(),
+          id: faker.datatype.number(),
+          slug: faker.datatype.string(),
+          enabled: faker.datatype.boolean(),
+          position: faker.datatype.number(),
+          title: faker.datatype.string(),
+          subtitle: faker.datatype.string(),
+          description: faker.datatype.string(),
+          picture: faker.datatype.string(),
+          ctaText: faker.datatype.string(),
+          waitingAdviceVideo: faker.datatype.string(),
+        },
+        uuid: faker.datatype.uuid(),
+        createdAt: faker.date.past().toISOString(),
+        updatedAt: faker.date.past().toISOString(),
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getAdvice(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/advice/${input.adviceId}`,
         })
       );
     });

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { AuthenticationTokenInput, AuthenticationTokenOutput } from './schema/authentication-token';
 import { UsersInput, UsersOutput } from './schema/v1/users';
 import { UserKycsInput, UserKycsOutput } from './schema/v1/user_kycs';
+import { AdviceInput, AdviceOutput } from './schema/v1/advice';
 
 export class Api {
   readonly #axios: AxiosInstance;
@@ -56,6 +57,20 @@ export class Api {
         headers: { Authorization: `Bearer ${token}` },
       },
       UserKycsOutput
+    );
+  }
+
+  public async getAdvice({
+    token,
+    adviceId,
+  }: z.infer<typeof AdviceInput>): Promise<z.infer<typeof AdviceOutput>> {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/advice/${adviceId}`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      AdviceOutput
     );
   }
 
