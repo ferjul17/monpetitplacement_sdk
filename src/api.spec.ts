@@ -1,15 +1,23 @@
 import faker from 'faker';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 import { Api } from './api';
 import { UsersInput, UsersOutput } from './schema/v1/users';
+import { UserKycsInput, UserKycsOutput } from './schema/v1/user_kycs';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
 
   beforeEach(() => {
     mockAxios = new AxiosMockAdapter(axios);
+  });
+
+  it('throws a ZodError in case the output does not match the expected interface', async () => {
+    const sdk = new Api();
+    mockAxios.onPost().reply(200, null as any);
+
+    await expect(sdk.login({ username: '', password: '' })).rejects.toEqual(expect.any(ZodError));
   });
 
   describe('login', () => {
@@ -29,7 +37,7 @@ describe('Api', () => {
           isTest: faker.datatype.boolean(),
           lastLogin: faker.date.recent().toISOString(),
           passwordRequestedAt: null,
-          roles: ['ROLE_USER', 'ROLE_TEST'],
+          roles: [],
           firstname: faker.name.firstName(),
           lastname: faker.name.lastName(),
           gender: faker.helpers.randomize(['man', 'woman']),
@@ -51,50 +59,12 @@ describe('Api', () => {
           origin: faker.helpers.randomize(['Par la presse']),
           goal: null,
           viewPreference: faker.helpers.randomize(['invest-profile']),
-          investmentAccounts: [
-            {
-              id: faker.datatype.number().toString(),
-              status: faker.helpers.randomize(['active']),
-              reference: faker.datatype.number().toString(),
-              watermark: faker.datatype.number(),
-              watermarkedAt: faker.date.recent().toISOString(),
-              error: null,
-              refusedSource: null,
-              providerProjectId: faker.datatype.number().toString(),
-              providerContractId: faker.datatype.number().toString(),
-              statusProvider: faker.helpers.randomize(['Contrat ouvert']),
-              profile: faker.helpers.randomize(['co-pilot']),
-              incompatible: faker.datatype.boolean(),
-              effectiveDate: faker.date.recent().toISOString(),
-              nextMonthlyPaymentDate: faker.date.soon().toISOString(),
-              lastProviderKycUpdateAt: faker.date.recent().toISOString(),
-              provider: {
-                id: faker.datatype.number().toString(),
-                name: 'Apicil',
-                slug: 'apicil',
-                position: faker.datatype.number().toString(),
-                enabled: faker.datatype.boolean(),
-                publicationMode: null,
-                publishOn: null,
-                unpublishOn: null,
-                minimumFirstInvestment: faker.datatype.number().toString(),
-                minimumFirstInvestmentMonthly: faker.datatype.number().toString(),
-                minimumInvestmentMonthly: faker.datatype.number().toString(),
-                walletProvider: [],
-                uuid: faker.datatype.uuid(),
-                createdAt: faker.date.past().toISOString(),
-                updatedAt: faker.date.recent().toISOString(),
-              },
-              uuid: faker.datatype.uuid(),
-              createdAt: faker.date.past().toISOString(),
-              updatedAt: faker.date.recent().toISOString(),
-            },
-          ],
+          investmentAccounts: [],
           language: [],
           universignCertifiedAt: faker.date.past().toISOString(),
           bankinToken: null,
           crispId: faker.datatype.uuid(),
-          crispSegments: ['client', 'co-pilote', 'vid\u00e9o perso', 'apicil'],
+          crispSegments: [],
           uuid: faker.datatype.uuid(),
           createdAt: faker.date.past().toISOString(),
           updatedAt: faker.date.recent().toISOString(),
@@ -137,7 +107,7 @@ describe('Api', () => {
         enabled: faker.datatype.boolean(),
         isTest: faker.datatype.boolean(),
         lastLogin: faker.date.recent().toISOString(),
-        roles: ['ROLE_USER', 'ROLE_TEST'],
+        roles: [],
         firstname: faker.name.firstName(),
         lastname: faker.name.lastName(),
         gender: faker.helpers.randomize(['man', 'woman']),
@@ -156,48 +126,11 @@ describe('Api', () => {
         },
         origin: faker.helpers.randomize(['Par la presse']),
         viewPreference: faker.helpers.randomize(['invest-profile']),
-        investmentAccounts: [
-          {
-            '@id': `/v1/user_investment_accounts/${faker.datatype.number().toString()}`,
-            '@type': 'UserInvestmentAccounts',
-            id: faker.datatype.number().toString(),
-            status: faker.helpers.randomize(['active']),
-            reference: faker.datatype.number().toString(),
-            watermark: faker.datatype.number(),
-            watermarkedAt: faker.date.recent().toISOString(),
-            providerProjectId: faker.datatype.number().toString(),
-            providerContractId: faker.datatype.number().toString(),
-            statusProvider: faker.helpers.randomize(['Contrat ouvert']),
-            profile: faker.helpers.randomize(['co-pilot']),
-            incompatible: faker.datatype.boolean(),
-            effectiveDate: faker.date.recent().toISOString(),
-            nextMonthlyPaymentDate: faker.date.soon().toISOString(),
-            lastProviderKycUpdateAt: faker.date.recent().toISOString(),
-            provider: {
-              '@id': '/v1/investment_account_providers/apicil',
-              '@type': 'InvestmentAccountProviders',
-              id: faker.datatype.number().toString(),
-              name: 'Apicil',
-              slug: 'apicil',
-              position: faker.datatype.number().toString(),
-              enabled: faker.datatype.boolean(),
-              minimumFirstInvestment: faker.datatype.number().toString(),
-              minimumFirstInvestmentMonthly: faker.datatype.number().toString(),
-              minimumInvestmentMonthly: faker.datatype.number().toString(),
-              walletProvider: [],
-              uuid: faker.datatype.uuid(),
-              createdAt: faker.date.past().toISOString(),
-              updatedAt: faker.date.recent().toISOString(),
-            },
-            uuid: faker.datatype.uuid(),
-            createdAt: faker.date.past().toISOString(),
-            updatedAt: faker.date.recent().toISOString(),
-          },
-        ],
+        investmentAccounts: [],
         language: [],
         universignCertifiedAt: faker.date.past().toISOString(),
         crispId: faker.datatype.uuid(),
-        crispSegments: ['client', 'co-pilote', 'vidéo perso', 'apicil'],
+        crispSegments: [],
         uuid: faker.datatype.uuid(),
         createdAt: faker.date.past().toISOString(),
         updatedAt: faker.date.recent().toISOString(),
@@ -216,6 +149,35 @@ describe('Api', () => {
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
           url: `v1/users/${input.userId}`,
+        })
+      );
+    });
+  });
+
+  describe('getUserKycs', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof UserKycsInput> = {
+        token: faker.datatype.string(100),
+        userId: faker.datatype.number(),
+      };
+      const mockedResponse: z.infer<typeof UserKycsOutput> = {
+        '@context': '/v1/contexts/UserKycs',
+        '@id': '/v1/users/32036/user_kycs',
+        '@type': 'hydra:Collection',
+        'hydra:member': [],
+        'hydra:totalItems': 1,
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getUserKycs(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/users/${input.userId}/user_kycs`,
         })
       );
     });
