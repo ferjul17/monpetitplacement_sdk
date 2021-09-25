@@ -16,7 +16,15 @@ if (password === undefined) {
   } = await api.login({ username, password });
   const user = await api.getUser({ token, userId });
   const userKycs = await api.getUserKycs({ token, userId });
-  console.log({ user, userKycs });
+  const advices = await Promise.all(
+    userKycs['hydra:member'].map(({ advice }) =>
+      api.getAdvice({
+        token,
+        adviceId: parseInt(advice.id, 10),
+      })
+    )
+  );
+  console.log({ user, userKycs, advices });
 })().catch((e) => {
   console.error(e);
   process.exit(-1);
