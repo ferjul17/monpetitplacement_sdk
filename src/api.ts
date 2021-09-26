@@ -9,6 +9,7 @@ import {
   InvestProfileCategoriesOutput,
 } from './schema/v1/invest_profile_categories';
 import { InvestProfilesInput, InvestProfilesOutput } from './schema/v1/invest_profiles';
+import { UserCouponsInput, UserCouponsOutput } from './schema/v1/user_coupons';
 
 export class Api {
   readonly #axios: AxiosInstance;
@@ -62,6 +63,20 @@ export class Api {
         headers: { Authorization: `Bearer ${token}` },
       },
       UserKycsOutput
+    );
+  }
+
+  public async getUserCoupons({
+    token,
+    userId,
+  }: z.infer<typeof UserCouponsInput>): Promise<z.infer<typeof UserCouponsOutput>> {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/users/${userId}/user_coupons`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      UserCouponsOutput
     );
   }
 

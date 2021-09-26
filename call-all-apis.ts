@@ -17,6 +17,7 @@ if (password === undefined) {
   const investProfileCategories = await api.getInvestProfileCategories({ token });
   const investProfiles = await api.getInvestProfiles({ token });
   const user = await api.getUser({ token, userId });
+  const userCoupons = await api.getUserCoupons({ token, userId });
   const userKycs = await api.getUserKycs({ token, userId });
   const advices = await Promise.all(
     userKycs['hydra:member'].map(({ advice }) =>
@@ -26,7 +27,7 @@ if (password === undefined) {
       })
     )
   );
-  console.log({ investProfileCategories, investProfiles, user, userKycs, advices });
+  console.log({ investProfileCategories, investProfiles, user, userCoupons, userKycs, advices });
 })().catch((e) => {
   console.error(e);
   process.exit(-1);
