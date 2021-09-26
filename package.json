@@ -1,8 +1,18 @@
 {
   "name": "monpetitplacement-sdk",
   "version": "0.0.1",
-  "description": "",
-  "main": "index.js",
+  "description": "TypeScript library for accessing the French fintech company MonPetitPlacement's services.",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": {
+      "require": "./lib/index.js",
+      "import": "./esm/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/"
+  ],
   "scripts": {
     "test": "jest",
     "lint": "eslint --cache --ignore-path .gitignore .",
@@ -10,8 +20,12 @@
     "prepare": "husky install",
     "build": "tsc -p tsconfig.build.json"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ferjul17/monpetitplacement_sdk"
+  },
   "keywords": [],
-  "author": "Julien Ferrier",
+  "author": "Julien Ferrier <npm-package-monpetitplacement_sdk@ferrier.email>",
   "license": "MIT",
   "devDependencies": {
     "@types/axios": "^0.14.0",
