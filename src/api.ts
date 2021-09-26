@@ -8,6 +8,7 @@ import {
   InvestProfileCategoriesInput,
   InvestProfileCategoriesOutput,
 } from './schema/v1/invest_profile_categories';
+import { InvestProfilesInput, InvestProfilesOutput } from './schema/v1/invest_profiles';
 
 export class Api {
   readonly #axios: AxiosInstance;
@@ -90,6 +91,19 @@ export class Api {
         headers: { Authorization: `Bearer ${token}` },
       },
       InvestProfileCategoriesOutput
+    );
+  }
+
+  public async getInvestProfiles({
+    token,
+  }: z.infer<typeof InvestProfilesInput>): Promise<z.infer<typeof InvestProfilesOutput>> {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/invest_profiles`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      InvestProfilesOutput
     );
   }
 
