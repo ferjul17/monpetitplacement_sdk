@@ -12,6 +12,10 @@ import {
 } from './schema/v1/invest_profile_categories';
 import { InvestProfilesInput, InvestProfilesOutput } from './schema/v1/invest_profiles';
 import { UserCouponsInput, UserCouponsOutput } from './schema/v1/user_coupons';
+import {
+  UserFinancialCapitalInput,
+  UserFinancialCapitalOutput,
+} from './schema/v1/user_financial_capital';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -430,6 +434,45 @@ describe('Api', () => {
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
           url: `v1/invest_profiles`,
+        })
+      );
+    });
+  });
+
+  describe('getUserFinancialCapital', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof UserFinancialCapitalInput> = {
+        token: faker.datatype.string(100),
+        userInvestmentAccountId: faker.datatype.number(),
+      };
+      const mockedResponse: z.infer<typeof UserFinancialCapitalOutput> = {
+        '@context': '/v1/contexts/UserFinancialCapital',
+        '@id': `/v1/user_financial_capitals/${input.userInvestmentAccountId}`,
+        '@type': 'UserFinancialCapital',
+        id: `${input.userInvestmentAccountId}`,
+        amount: faker.datatype.number(),
+        performance: faker.datatype.number(),
+        numberPendingOperations: faker.datatype.number(),
+        buyAmount: faker.datatype.number(),
+        sellAmount: faker.datatype.number(),
+        exchangeAmount: faker.datatype.number(),
+        effectiveDate: faker.date.recent().toISOString(),
+        totalInvestAmount: faker.datatype.number(),
+        initialInvestmentPending: faker.datatype.boolean(),
+        operationValuatedAt: null,
+        isBeingDailyProcessed: faker.datatype.boolean(),
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getUserFinancialCapital(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/user_investment_accounts/${input.userInvestmentAccountId}/user_financial_capital`,
         })
       );
     });

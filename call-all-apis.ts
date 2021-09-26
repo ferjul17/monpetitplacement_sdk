@@ -21,13 +21,23 @@ if (password === undefined) {
   const userKycs = await api.getUserKycs({ token, userId });
   const advices = await Promise.all(
     userKycs['hydra:member'].map(({ advice }) =>
-      api.getAdvice({
-        token,
-        adviceId: parseInt(advice.id, 10),
-      })
+      api.getAdvice({ token, adviceId: parseInt(advice.id, 10) })
     )
   );
-  console.log({ investProfileCategories, investProfiles, user, userCoupons, userKycs, advices });
+  const userFinancialCapitals = await Promise.all(
+    user.investmentAccounts.map(({ id }) =>
+      api.getUserFinancialCapital({ token, userInvestmentAccountId: parseInt(id, 10) })
+    )
+  );
+  console.log({
+    investProfileCategories,
+    investProfiles,
+    user,
+    userCoupons,
+    userKycs,
+    advices,
+    userFinancialCapitals,
+  });
 })().catch((e) => {
   console.error(e);
   process.exit(-1);
