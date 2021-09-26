@@ -10,6 +10,7 @@ import {
   InvestProfileCategoriesInput,
   InvestProfileCategoriesOutput,
 } from './schema/v1/invest_profile_categories';
+import { InvestProfilesInput, InvestProfilesOutput } from './schema/v1/invest_profiles';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -363,6 +364,38 @@ describe('Api', () => {
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
           url: `v1/invest_profile_categories`,
+        })
+      );
+    });
+  });
+
+  describe('getInvestProfiles', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof InvestProfilesInput> = {
+        token: faker.datatype.string(100),
+      };
+      const mockedResponse: z.infer<typeof InvestProfilesOutput> = {
+        '@context': '/v1/contexts/InvestProfile',
+        '@id': '/v1/invest_profiles',
+        '@type': 'hydra:Collection',
+        'hydra:member': [],
+        'hydra:totalItems': 0,
+        'hydra:view': {
+          '@id': '/v1/invest_profiles?cache-version=0',
+          '@type': 'hydra:PartialCollectionView',
+        },
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getInvestProfiles(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/invest_profiles`,
         })
       );
     });

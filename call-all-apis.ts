@@ -15,6 +15,7 @@ if (password === undefined) {
     user: { id: userId },
   } = await api.login({ username, password });
   const investProfileCategories = await api.getInvestProfileCategories({ token });
+  const investProfiles = await api.getInvestProfiles({ token });
   const user = await api.getUser({ token, userId });
   const userKycs = await api.getUserKycs({ token, userId });
   const advices = await Promise.all(
@@ -25,7 +26,7 @@ if (password === undefined) {
       })
     )
   );
-  console.log({ investProfileCategories, user, userKycs, advices });
+  console.log({ investProfileCategories, investProfiles, user, userKycs, advices });
 })().catch((e) => {
   console.error(e);
   process.exit(-1);
