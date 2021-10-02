@@ -14,6 +14,7 @@ import {
   UserFinancialCapitalInput,
   UserFinancialCapitalOutput,
 } from './schema/v1/user_financial_capital';
+import { CouponsInput, CouponsOutput } from './schema/v1/coupons';
 
 export class Api {
   readonly #axios: AxiosInstance;
@@ -81,6 +82,20 @@ export class Api {
         headers: { Authorization: `Bearer ${token}` },
       },
       UserCouponsOutput
+    );
+  }
+
+  public async getCoupons({
+    token,
+    userId,
+  }: z.infer<typeof CouponsInput>): Promise<z.infer<typeof CouponsOutput>> {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/users/${userId}/coupons`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      CouponsOutput
     );
   }
 
