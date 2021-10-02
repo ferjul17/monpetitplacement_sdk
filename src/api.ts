@@ -20,6 +20,10 @@ import {
   UserInvestmentAccountProductsOutput,
 } from './schema/v1/user_investment_account_products';
 import { AvailableProductsInput, AvailableProductsOutput } from './schema/v1/available_products';
+import {
+  UserInvestmentValuesInput,
+  UserInvestmentValuesOutput,
+} from './schema/v1/user_investment_values';
 
 export class Api {
   readonly #axios: AxiosInstance;
@@ -159,6 +163,22 @@ export class Api {
         headers: { Authorization: `Bearer ${token}` },
       },
       UserFinancialCapitalOutput
+    );
+  }
+
+  public async getUserInvestmentValuesInput({
+    token,
+    userInvestmentAccountId,
+  }: z.infer<typeof UserInvestmentValuesInput>): Promise<
+    z.infer<typeof UserInvestmentValuesOutput>
+  > {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/user_investment_accounts/${userInvestmentAccountId}/user_investment_values`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      UserInvestmentValuesOutput
     );
   }
 
