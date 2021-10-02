@@ -17,6 +17,10 @@ import {
   UserFinancialCapitalOutput,
 } from './schema/v1/user_financial_capital';
 import { CouponsInput, CouponsOutput } from './schema/v1/coupons';
+import {
+  UserInvestmentAccountProductsInput,
+  UserInvestmentAccountProductsOutput,
+} from './schema/v1/user_investment_account_products';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -494,6 +498,44 @@ describe('Api', () => {
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
           url: `v1/user_investment_accounts/${input.userInvestmentAccountId}/user_financial_capital`,
+        })
+      );
+    });
+  });
+
+  describe('getUserInvestmentAccountProducts', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof UserInvestmentAccountProductsInput> = {
+        token: faker.datatype.string(100),
+        userInvestmentAccountId: faker.datatype.number(),
+      };
+      const mockedResponse: z.infer<typeof UserInvestmentAccountProductsOutput> = {
+        '@context': '/v1/contexts/UserInvestmentAccountProduct',
+        '@id': `/v1/user_investment_accounts/${input.userInvestmentAccountId}/user_investment_account_products`,
+        '@type': 'hydra:Collection',
+        'hydra:member': [],
+        'hydra:view': {
+          '@id': `/v1/user_investment_accounts/${input.userInvestmentAccountId}/user_investment_account_products`,
+          '@type': 'hydra:PartialCollectionView',
+        },
+        'hydra:search': {
+          '@type': 'hydra:IriTemplate',
+          'hydra:template': `/v1/user_investment_accounts/${input.userInvestmentAccountId}/user_investmen...`,
+          'hydra:variableRepresentation': 'BasicRepresentation',
+          'hydra:mapping': [],
+        },
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getUserInvestmentAccountProducts(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/user_investment_accounts/${input.userInvestmentAccountId}/user_investment_account_products`,
         })
       );
     });
