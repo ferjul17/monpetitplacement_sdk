@@ -18,6 +18,7 @@ if (password === undefined) {
   const investProfiles = await api.getInvestProfiles({ token });
   const user = await api.getUser({ token, userId });
   const userCoupons = await api.getUserCoupons({ token, userId });
+  const coupons = await api.getCoupons({ token, userId });
   const userKycs = await api.getUserKycs({ token, userId });
   const advices = await Promise.all(
     userKycs['hydra:member'].map(({ advice }) =>
@@ -34,6 +35,7 @@ if (password === undefined) {
     investProfiles,
     user,
     userCoupons,
+    coupons,
     userKycs,
     advices,
     userFinancialCapitals,

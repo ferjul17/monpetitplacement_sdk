@@ -16,6 +16,7 @@ import {
   UserFinancialCapitalInput,
   UserFinancialCapitalOutput,
 } from './schema/v1/user_financial_capital';
+import { CouponsInput, CouponsOutput } from './schema/v1/coupons';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -222,6 +223,39 @@ describe('Api', () => {
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
           url: `v1/users/${input.userId}/user_coupons`,
+        })
+      );
+    });
+  });
+
+  describe('getCoupons', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof CouponsInput> = {
+        token: faker.datatype.string(100),
+        userId: faker.datatype.number(),
+      };
+      const mockedResponse: z.infer<typeof CouponsOutput> = {
+        '@context': '/v1/contexts/Coupons',
+        '@id': `/v1/users/${input.userId}/coupons`,
+        '@type': 'hydra:Collection',
+        'hydra:member': [],
+        'hydra:totalItems': 0,
+        'hydra:view': {
+          '@id': `/v1/users/${input.userId}/coupons?cache-version=0`,
+          '@type': 'hydra:PartialCollectionView',
+        },
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getCoupons(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/users/${input.userId}/coupons`,
         })
       );
     });
