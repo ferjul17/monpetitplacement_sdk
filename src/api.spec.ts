@@ -21,6 +21,7 @@ import {
   UserInvestmentAccountProductsInput,
   UserInvestmentAccountProductsOutput,
 } from './schema/v1/user_investment_account_products';
+import { AvailableProductsInput, AvailableProductsOutput } from './schema/v1/available_products';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -498,6 +499,41 @@ describe('Api', () => {
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
           url: `v1/user_investment_accounts/${input.userInvestmentAccountId}/user_financial_capital`,
+        })
+      );
+    });
+  });
+
+  describe('getUserFinancialCapital', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof AvailableProductsInput> = {
+        token: faker.datatype.string(100),
+        userKycsId: faker.datatype.number(),
+      };
+      const mockedResponse: z.infer<typeof AvailableProductsOutput> = {
+        '@context': '/v1/contexts/Products',
+        '@id': '/v1/products',
+        '@type': 'hydra:Collection',
+        'hydra:member': [],
+        'hydra:totalItems': 0,
+        'hydra:search': {
+          '@type': 'hydra:IriTemplate',
+          'hydra:template': `/v1/user_kycs/${input.userKycsId}/available_products{?groups[]}`,
+          'hydra:variableRepresentation': 'BasicRepresentation',
+          'hydra:mapping': [],
+        },
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getAvailableProducts(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/user_kycs/${input.userKycsId}/available_products`,
         })
       );
     });

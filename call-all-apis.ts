@@ -20,6 +20,11 @@ if (password === undefined) {
   const userCoupons = await api.getUserCoupons({ token, userId });
   const coupons = await api.getCoupons({ token, userId });
   const userKycs = await api.getUserKycs({ token, userId });
+  const availableProducts = await Promise.all(
+    userKycs['hydra:member'].map(({ id }) =>
+      api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) })
+    )
+  );
   const advices = await Promise.all(
     userKycs['hydra:member'].map(({ advice }) =>
       api.getAdvice({ token, adviceId: parseInt(advice.id, 10) })
@@ -42,6 +47,7 @@ if (password === undefined) {
     userCoupons,
     coupons,
     userKycs,
+    availableProducts,
     advices,
     userFinancialCapitals,
     userInvestmentAccountProducts,
