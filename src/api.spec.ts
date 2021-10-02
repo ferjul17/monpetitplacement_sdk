@@ -22,6 +22,10 @@ import {
   UserInvestmentAccountProductsOutput,
 } from './schema/v1/user_investment_account_products';
 import { AvailableProductsInput, AvailableProductsOutput } from './schema/v1/available_products';
+import {
+  UserInvestmentValuesInput,
+  UserInvestmentValuesOutput,
+} from './schema/v1/user_investment_values';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -504,7 +508,36 @@ describe('Api', () => {
     });
   });
 
-  describe('getUserFinancialCapital', () => {
+  describe('getUserInvestmentValuesInput', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof UserInvestmentValuesInput> = {
+        token: faker.datatype.string(100),
+        userInvestmentAccountId: faker.datatype.number(),
+      };
+      const mockedResponse: z.infer<typeof UserInvestmentValuesOutput> = {
+        '@context': '/v1/contexts/UserInvestmentValues',
+        '@id': `/v1/user_investment_accounts/${input.userInvestmentAccountId}/user_investment_values`,
+        '@type': 'hydra:Collection',
+        'hydra:member': [],
+        'hydra:totalItems': 0,
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getUserInvestmentValuesInput(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/user_investment_accounts/${input.userInvestmentAccountId}/user_investment_values`,
+        })
+      );
+    });
+  });
+
+  describe('getAvailableProducts', () => {
     it('calls the api with the right parameters', async () => {
       const sdk = new Api();
       const input: z.infer<typeof AvailableProductsInput> = {

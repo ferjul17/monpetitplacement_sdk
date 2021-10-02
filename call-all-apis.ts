@@ -35,6 +35,11 @@ if (password === undefined) {
       api.getUserFinancialCapital({ token, userInvestmentAccountId: parseInt(id, 10) })
     )
   );
+  const userInvestmentValuesInput = await Promise.all(
+    user.investmentAccounts.map(({ id }) =>
+      api.getUserInvestmentValuesInput({ token, userInvestmentAccountId: parseInt(id, 10) })
+    )
+  );
   const userInvestmentAccountProducts = await Promise.all(
     user.investmentAccounts.map(({ id }) =>
       api.getUserInvestmentAccountProducts({ token, userInvestmentAccountId: parseInt(id, 10) })
@@ -50,6 +55,7 @@ if (password === undefined) {
     availableProducts,
     advices,
     userFinancialCapitals,
+    userInvestmentValuesInput,
     userInvestmentAccountProducts,
   });
 })().catch((e) => {
