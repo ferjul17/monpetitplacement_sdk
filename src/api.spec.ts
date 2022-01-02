@@ -3,7 +3,6 @@ import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { z, ZodError } from 'zod';
 import { Api } from './api';
-import { UsersInput, UsersOutput } from './schema/v1/users';
 import { UserKycsInput, UserKycsOutput } from './schema/v1/user_kycs';
 import { AdviceInput, AdviceOutput } from './schema/v1/advice';
 import {
@@ -26,6 +25,8 @@ import {
   UserInvestmentValuesInput,
   UserInvestmentValuesOutput,
 } from './schema/v1/user_investment_values';
+import { MeInput, MeOutput } from './schema/v1/me';
+import { AuthenticationTokenOutput } from './schema/authentication-token';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -48,52 +49,21 @@ describe('Api', () => {
         username: faker.internet.email(),
         password: faker.internet.password(),
       };
-      const mockedResponse = {
-        token: faker.datatype.string(100),
-        user: {
-          id: faker.datatype.number(),
-          username: faker.internet.email(),
-          email: faker.internet.email(),
-          enabled: faker.datatype.boolean(),
-          isTest: faker.datatype.boolean(),
-          lastLogin: faker.date.recent().toISOString(),
-          passwordRequestedAt: null,
-          roles: [],
-          firstname: faker.name.firstName(),
-          lastname: faker.name.lastName(),
-          gender: faker.helpers.randomize(['man', 'woman']),
-          phone: faker.phone.phoneNumber(),
-          cgvAccepted: faker.datatype.boolean(),
-          validatedAt: faker.date.recent().toISOString(),
-          birthdate: faker.date.past().toISOString(),
-          trackingToken: null,
-          nationality: null,
-          nif: null,
-          affiliateProvider: {
-            id: faker.datatype.number().toString(),
-            name: faker.datatype.string(),
-            slug: faker.datatype.string(),
-            createdAt: faker.date.past().toISOString(),
-            updatedAt: faker.date.recent().toISOString(),
-          },
-          lydiaToken: null,
-          origin: faker.helpers.randomize(['Par la presse']),
-          goal: null,
-          viewPreference: faker.helpers.randomize(['invest-profile']),
-          investmentAccounts: [],
-          language: [],
-          universignCertifiedAt: faker.date.past().toISOString(),
-          bankinToken: null,
-          crispId: faker.datatype.uuid(),
-          crispSegments: [],
-          uuid: faker.datatype.uuid(),
-          createdAt: faker.date.past().toISOString(),
-          updatedAt: faker.date.recent().toISOString(),
-          affiliationLevel: faker.helpers.randomize(['Beginner']),
-          affiliationAlreadyClientUserCount: faker.datatype.number(),
-          affiliationTotalUserCount: faker.datatype.number(),
-          affiliationSavingsPercent: faker.datatype.number(),
-        },
+      const data = new URLSearchParams();
+      data.set('grant_type', 'password');
+      data.set('client_id', 'mpp-app');
+      data.set('username', creds.username);
+      data.set('password', creds.password);
+
+      const mockedResponse: z.infer<typeof AuthenticationTokenOutput> = {
+        access_token: faker.datatype.string(100),
+        expires_in: 300,
+        'not-before-policy': 0,
+        refresh_expires_in: 3600,
+        refresh_token: faker.datatype.string(100),
+        scope: 'email profile',
+        session_state: faker.datatype.uuid(),
+        token_type: 'Bearer',
       };
 
       mockAxios.onPost().reply(200, mockedResponse);
@@ -104,28 +74,27 @@ describe('Api', () => {
       expect(mockAxios.history.post.length).toBe(1);
       expect(mockAxios.history.post[0]).toEqual(
         expect.objectContaining({
-          data: JSON.stringify(creds),
-          url: 'authentication_token',
+          data: data.toString(),
+          url: 'auth/realms/mpp-prod/protocol/openid-connect/token',
         })
       );
     });
   });
 
-  describe('getUser', () => {
+  describe('getMe', () => {
     it('calls the api with the right parameters', async () => {
       const sdk = new Api();
-      const input: z.infer<typeof UsersInput> = {
+      const input: z.infer<typeof MeInput> = {
         token: faker.datatype.string(100),
-        userId: faker.datatype.number(),
       };
-      const mockedResponse: z.infer<typeof UsersOutput> = {
+      const userId = faker.datatype.number({ min: 1 });
+      const mockedResponse: z.infer<typeof MeOutput> = {
         '@context': '/v1/contexts/User',
-        '@id': `/v1/users/${input.userId}`,
+        '@id': `/v1/users/${userId}`,
         '@type': 'User',
-        id: input.userId,
+        id: userId,
         username: faker.internet.email(),
         email: faker.internet.email(),
-        enabled: faker.datatype.boolean(),
         isTest: faker.datatype.boolean(),
         lastLogin: faker.date.recent().toISOString(),
         roles: [],
@@ -148,7 +117,6 @@ describe('Api', () => {
         origin: faker.helpers.randomize(['Par la presse']),
         viewPreference: faker.helpers.randomize(['invest-profile']),
         investmentAccounts: [],
-        language: [],
         universignCertifiedAt: faker.date.past().toISOString(),
         crispId: faker.datatype.uuid(),
         crispSegments: [],
@@ -159,17 +127,26 @@ describe('Api', () => {
         affiliationAlreadyClientUserCount: faker.datatype.number(),
         affiliationTotalUserCount: faker.datatype.number(),
         affiliationSavingsPercent: faker.datatype.number(),
+        userSensibleData: [
+          {
+            '@id': `/v1/user_sensible_datas/${faker.datatype.number({ min: 1 })}`,
+            '@type': 'UserSensibleData',
+            iban: faker.finance.iban(),
+            swift: faker.finance.bic(),
+            uuid: faker.datatype.uuid(),
+          },
+        ],
       };
       mockAxios.onGet().reply(200, mockedResponse);
 
-      const response = await sdk.getUser(input);
+      const response = await sdk.getMe(input);
 
       expect(response).toEqual(mockedResponse);
       expect(mockAxios.history.get.length).toBe(1);
       expect(mockAxios.history.get[0]).toEqual(
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/users/${input.userId}`,
+          url: `v1/me`,
         })
       );
     });
@@ -292,100 +269,9 @@ describe('Api', () => {
           picture: faker.internet.url(),
           calendlyCalendarUrl: faker.internet.url(),
         },
-        language: [],
         video: faker.datatype.string(),
-        generalAdvice: faker.datatype.string(),
-        buyAdvice: faker.datatype.string(),
-        sellAdvice: faker.datatype.string(),
-        dashboardAdvice: faker.datatype.string(),
         inconsistent: faker.datatype.boolean(),
         suggestedInvestmentAccountProvider: faker.datatype.string(),
-        suggestedAdvicePackage: {
-          '@id': faker.datatype.string(),
-          '@type': faker.datatype.string(),
-          id: faker.datatype.number(),
-          slug: faker.datatype.string(),
-          enabled: faker.datatype.boolean(),
-          position: faker.datatype.number(),
-          title: faker.datatype.string(),
-          subtitle: faker.datatype.string(),
-          description: faker.datatype.string(),
-          picture: faker.datatype.string(),
-          bulletPoints: [],
-          ctaText: faker.datatype.string(),
-          defaultAdviceSubpackage: {
-            '@id': faker.datatype.string(),
-            '@type': faker.datatype.string(),
-            id: faker.datatype.number(),
-            slug: faker.datatype.string(),
-            enabled: faker.datatype.boolean(),
-            position: faker.datatype.number(),
-            title: faker.datatype.string(),
-            subtitle: faker.datatype.string(),
-            description: faker.datatype.string(),
-            picture: faker.datatype.string(),
-            ctaText: faker.datatype.string(),
-            waitingAdviceVideo: faker.datatype.string(),
-            genericVideo: faker.datatype.string(),
-          },
-        },
-        selectedAdvicePackage: {
-          '@id': faker.datatype.string(),
-          '@type': faker.datatype.string(),
-          id: faker.datatype.number(),
-          slug: faker.datatype.string(),
-          enabled: faker.datatype.boolean(),
-          position: faker.datatype.number(),
-          title: faker.datatype.string(),
-          subtitle: faker.datatype.string(),
-          description: faker.datatype.string(),
-          picture: faker.datatype.string(),
-          bulletPoints: [],
-          ctaText: faker.datatype.string(),
-          defaultAdviceSubpackage: {
-            '@id': faker.datatype.string(),
-            '@type': faker.datatype.string(),
-            id: faker.datatype.number(),
-            slug: faker.datatype.string(),
-            enabled: faker.datatype.boolean(),
-            position: faker.datatype.number(),
-            title: faker.datatype.string(),
-            subtitle: faker.datatype.string(),
-            description: faker.datatype.string(),
-            picture: faker.datatype.string(),
-            ctaText: faker.datatype.string(),
-            waitingAdviceVideo: faker.datatype.string(),
-            genericVideo: faker.datatype.string(),
-          },
-        },
-        suggestedAdviceSubpackage: {
-          '@id': faker.datatype.string(),
-          '@type': faker.datatype.string(),
-          id: faker.datatype.number(),
-          slug: faker.datatype.string(),
-          enabled: faker.datatype.boolean(),
-          position: faker.datatype.number(),
-          title: faker.datatype.string(),
-          subtitle: faker.datatype.string(),
-          description: faker.datatype.string(),
-          picture: faker.datatype.string(),
-          ctaText: faker.datatype.string(),
-          waitingAdviceVideo: faker.datatype.string(),
-        },
-        selectedAdviceSubpackage: {
-          '@id': faker.datatype.string(),
-          '@type': faker.datatype.string(),
-          id: faker.datatype.number(),
-          slug: faker.datatype.string(),
-          enabled: faker.datatype.boolean(),
-          position: faker.datatype.number(),
-          title: faker.datatype.string(),
-          subtitle: faker.datatype.string(),
-          description: faker.datatype.string(),
-          picture: faker.datatype.string(),
-          ctaText: faker.datatype.string(),
-          waitingAdviceVideo: faker.datatype.string(),
-        },
         uuid: faker.datatype.uuid(),
         createdAt: faker.date.past().toISOString(),
         updatedAt: faker.date.past().toISOString(),
@@ -550,12 +436,6 @@ describe('Api', () => {
         '@type': 'hydra:Collection',
         'hydra:member': [],
         'hydra:totalItems': 0,
-        'hydra:search': {
-          '@type': 'hydra:IriTemplate',
-          'hydra:template': `/v1/user_kycs/${input.userKycsId}/available_products{?groups[]}`,
-          'hydra:variableRepresentation': 'BasicRepresentation',
-          'hydra:mapping': [],
-        },
       };
       mockAxios.onGet().reply(200, mockedResponse);
 

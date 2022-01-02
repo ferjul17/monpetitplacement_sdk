@@ -32,10 +32,6 @@ export const AvailableProductsOutput = z.object({
         annualized_performance: z.record(z.number()),
       }),
       investmentAccountProvider: z.array(z.string()),
-      language: z.array(z.unknown()),
-      description: z.unknown().nullable(),
-      trendDescription: z.unknown().nullable(),
-      dashboardDescription: z.unknown().nullable(),
       uuid: z.string(),
       createdAt: z.string(),
       updatedAt: z.string(),
@@ -44,17 +40,4 @@ export const AvailableProductsOutput = z.object({
   ),
   'hydra:totalItems': z.number(),
   'hydra:view': z.object({ '@id': z.string(), '@type': z.string() }).optional(),
-  'hydra:search': z.object({
-    '@type': z.string(),
-    'hydra:template': z.string(),
-    'hydra:variableRepresentation': z.string(),
-    'hydra:mapping': z.array(
-      z.object({
-        '@type': z.string(),
-        variable: z.string(),
-        property: z.unknown().nullable(),
-        required: z.boolean(),
-      })
-    ),
-  }),
 });

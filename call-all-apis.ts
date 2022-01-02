@@ -10,13 +10,11 @@ if (password === undefined) {
 
 (async () => {
   const api = new Api();
-  const {
-    token,
-    user: { id: userId },
-  } = await api.login({ username, password });
+  const { access_token: token } = await api.login({ username, password });
+  const user = await api.getMe({ token });
+  const userId = user.id;
   const investProfileCategories = await api.getInvestProfileCategories({ token });
   const investProfiles = await api.getInvestProfiles({ token });
-  const user = await api.getUser({ token, userId });
   const userCoupons = await api.getUserCoupons({ token, userId });
   const coupons = await api.getCoupons({ token, userId });
   const userKycs = await api.getUserKycs({ token, userId });

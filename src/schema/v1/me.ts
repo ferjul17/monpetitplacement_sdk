@@ -1,18 +1,16 @@
 import { z } from 'zod';
 
-export const UsersInput = z.object({
-  userId: z.number(),
+export const MeInput = z.object({
   token: z.string(),
 });
 
-export const UsersOutput = z.object({
+export const MeOutput = z.object({
   '@context': z.string(),
   '@id': z.string(),
   '@type': z.string(),
   id: z.number(),
   username: z.string(),
   email: z.string(),
-  enabled: z.boolean(),
   isTest: z.boolean(),
   lastLogin: z.string(),
   roles: z.array(z.string()),
@@ -59,20 +57,28 @@ export const UsersOutput = z.object({
         slug: z.string(),
         position: z.string(),
         enabled: z.boolean(),
-        minimumFirstInvestment: z.string(),
-        minimumFirstInvestmentMonthly: z.string(),
-        minimumInvestmentMonthly: z.string(),
-        walletProvider: z.array(z.unknown()),
+        minimumFirstInvestment: z.number(),
+        minimumFirstInvestmentMonthly: z.number(),
+        minimumInvestmentMonthly: z.number(),
         uuid: z.string(),
         createdAt: z.string(),
         updatedAt: z.string(),
       }),
+      userKycs: z.array(z.string()),
       uuid: z.string(),
       createdAt: z.string(),
       updatedAt: z.string(),
     })
   ),
-  language: z.array(z.unknown()),
+  userSensibleData: z.array(
+    z.object({
+      '@id': z.string(),
+      '@type': z.string(),
+      iban: z.string(),
+      swift: z.string(),
+      uuid: z.string(),
+    })
+  ),
   universignCertifiedAt: z.string(),
   crispId: z.string(),
   crispSegments: z.array(z.string()),
