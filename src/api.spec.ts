@@ -1,4 +1,4 @@
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { z, ZodError } from 'zod';
