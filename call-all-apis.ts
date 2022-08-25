@@ -1,9 +1,6 @@
 /* eslint-disable no-console */
 import 'dotenv/config';
-import { z } from 'zod';
 import { Api } from './src';
-
-import { InvestmentAccount } from './src/schema/v1/me';
 
 const { USERNAME, PASSWORD } = process.env;
 if (USERNAME === undefined) {
