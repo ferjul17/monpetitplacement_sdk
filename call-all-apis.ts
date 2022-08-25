@@ -12,14 +12,10 @@ if (PASSWORD === undefined) {
 
 (async () => {
   const api = new Api();
-  // eslint-disable-next-line no-console
-  console.warn('create api');
+
   const { access_token: token } = await api.login({ username: USERNAME, password: PASSWORD });
-  console.warn('after login', token);
   const user = await api.getMe({ token });
 
-  // eslint-disable-next-line no-console
-  console.warn('user', user);
   const userId = user.id;
   const investProfileCategories = await api.getInvestProfileCategories({ token });
   const investProfiles = await api.getInvestProfiles({ token });
