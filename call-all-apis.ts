@@ -120,7 +120,12 @@ async function parseKYCS(
       userInvestmentAccountProducts,
     });
   } catch (err) {
-    console.error('Error while calling apis', err); // ,err);
+    if (err instanceof Error || err instanceof AxiosError) {
+      handleError(err);
+      return;
+    }
+
+    console.error('Error while calling apis', err);
   }
 })().catch((e) => {
   console.error(e);
