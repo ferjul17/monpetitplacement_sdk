@@ -1,17 +1,25 @@
+/* eslint-disable no-console */
+import 'dotenv/config';
 import { Api } from './src';
 
-const { username, password } = process.env;
-if (username === undefined) {
+const { USERNAME, PASSWORD } = process.env;
+if (USERNAME === undefined) {
   throw new Error(`Missing en var "username".`);
 }
-if (password === undefined) {
+if (PASSWORD === undefined) {
   throw new Error(`Missing en var "password".`);
 }
 
 (async () => {
   const api = new Api();
-  const { access_token: token } = await api.login({ username, password });
+  // eslint-disable-next-line no-console
+  console.warn('create api');
+  const { access_token: token } = await api.login({ username: USERNAME, password: PASSWORD });
+  console.warn('after login', token);
   const user = await api.getMe({ token });
+
+  // eslint-disable-next-line no-console
+  console.warn('user', user);
   const userId = user.id;
   const investProfileCategories = await api.getInvestProfileCategories({ token });
   const investProfiles = await api.getInvestProfiles({ token });
@@ -28,6 +36,12 @@ if (password === undefined) {
       api.getAdvice({ token, adviceId: parseInt(advice.id, 10) })
     )
   );
+
+  if (!user.investmentAccounts) {
+    console.error('no investmentAccounts found');
+    return;
+  }
+
   const userFinancialCapitals = await Promise.all(
     user.investmentAccounts.map(({ id }) =>
       api.getUserFinancialCapital({ token, userInvestmentAccountId: parseInt(id, 10) })

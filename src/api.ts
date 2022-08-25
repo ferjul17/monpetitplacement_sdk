@@ -222,10 +222,20 @@ export class Api {
     type: z.ZodType<T>
   ): Promise<T> {
     const res = await axiosInstance.request(options);
+    // eslint-disable-next-line no-console
+    console.warn('res.data', res.data);
 
-    const output = await type.parseAsync(res.data);
+    try {
+      const output = await type.parseAsync(res.data);
+      // eslint-disable-next-line no-console
+      console.warn('parsing', output);
 
-    return output;
+      return output;
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+      return Promise.reject(err);
+    }
   }
 
   #callApi<T>(options: AxiosRequestConfig, type: z.ZodType<T>): Promise<T> {

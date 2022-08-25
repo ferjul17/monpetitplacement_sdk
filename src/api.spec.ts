@@ -105,6 +105,15 @@ describe('Api', () => {
         cgvAccepted: faker.datatype.boolean(),
         validatedAt: faker.date.past().toISOString(),
         birthdate: faker.date.past().toISOString(),
+        nationality: faker.address.countryCode(),
+        registrationReason: {
+          '@type': 'RegistrationReason',
+          '@id': faker.datatype.number().toString(),
+          id: faker.helpers.arrayElement(['want-to-invest-with-you']),
+          message: faker.lorem.lines(),
+          persona: faker.helpers.arrayElement(['investir']),
+        },
+        registrationReasonDetail: faker.lorem.lines(),
         affiliateProvider: {
           '@id': `/v1/affiliate_providers/${faker.datatype.number().toString()}`,
           '@type': 'AffiliateProviders',
@@ -127,6 +136,7 @@ describe('Api', () => {
         affiliationAlreadyClientUserCount: faker.datatype.number(),
         affiliationTotalUserCount: faker.datatype.number(),
         affiliationSavingsPercent: faker.datatype.number(),
+        affiliationSavingPercentWithoutGodChilds: faker.datatype.number(),
         userSensibleData: [
           {
             '@id': `/v1/user_sensible_datas/${faker.datatype.number({ min: 1 })}`,

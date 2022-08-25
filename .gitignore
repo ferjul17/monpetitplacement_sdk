@@ -3,3 +3,4 @@
 /coverage/
 /.eslintcache
 /lib/
+.env
