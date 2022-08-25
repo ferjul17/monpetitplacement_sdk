@@ -233,8 +233,6 @@ export class Api {
   }
 
   #callApi<T>(options: AxiosRequestConfig, type: z.ZodType<T>): Promise<T> {
-    // eslint-disable-next-line no-console
-    console.warn('calling api', options, type);
     return Api.#call(this.#axiosApi, options, type);
   }
 

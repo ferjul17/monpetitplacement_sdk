@@ -52,7 +52,6 @@ if (PASSWORD === undefined) {
         api.getUserInvestmentValuesInput({ token, userInvestmentAccountId: parseInt(id, 10) })
       )
     );
-    console.warn('get account products');
     const userInvestmentAccountProducts = await Promise.all(
       user.investmentAccounts.map(({ id }) =>
         api.getUserInvestmentAccountProducts({ token, userInvestmentAccountId: parseInt(id, 10) })
