@@ -4,6 +4,22 @@ export const MeInput = z.object({
   token: z.string(),
 });
 
+export const InvestmentAccountProvider = z.object({
+  '@id': z.string(),
+  '@type': z.string(),
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  position: z.string(),
+  enabled: z.boolean(),
+  minimumFirstInvestment: z.number(),
+  minimumFirstInvestmentMonthly: z.number(),
+  minimumInvestmentMonthly: z.number(),
+  uuid: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 export const MeOutput = z.object({
   '@context': z.string(),
   '@id': z.string(),
@@ -54,41 +70,7 @@ export const MeOutput = z.object({
         effectiveDate: z.string().optional(),
         nextMonthlyPaymentDate: z.string().optional(),
         lastProviderKycUpdateAt: z.string().optional(),
-        provider: z
-          .array(
-            z.object({
-              '@id': z.string(),
-              '@type': z.string(),
-              id: z.string(),
-              name: z.string(),
-              slug: z.string(),
-              position: z.string(),
-              enabled: z.boolean(),
-              minimumFirstInvestment: z.number(),
-              minimumFirstInvestmentMonthly: z.number(),
-              minimumInvestmentMonthly: z.number(),
-              uuid: z.string(),
-              createdAt: z.string(),
-              updatedAt: z.string(),
-            })
-          )
-          .or(
-            z.object({
-              '@id': z.string(),
-              '@type': z.string(),
-              id: z.string(),
-              name: z.string(),
-              slug: z.string(),
-              position: z.string(),
-              enabled: z.boolean(),
-              minimumFirstInvestment: z.number(),
-              minimumFirstInvestmentMonthly: z.number(),
-              minimumInvestmentMonthly: z.number(),
-              uuid: z.string(),
-              createdAt: z.string(),
-              updatedAt: z.string(),
-            })
-          ),
+        provider: z.array(InvestmentAccountProvider).or(InvestmentAccountProvider),
         hidden: z.boolean(),
         duration: z.number(),
         userKyc: z.string(),
