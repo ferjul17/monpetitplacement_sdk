@@ -40,13 +40,7 @@ async function parseKYCS(
     advicePromises.push(api.getAdvice({ token, adviceId: parseInt(advice.id, 10) }));
   }
 
-  try {
-    const advices = await Promise.all(advicePromises);
-    return advices;
-  } catch (err: any) {
-    handleError(err);
-    return null;
-  }
+  return Promise.all(advicePromises);
 }
 
 (async () => {
@@ -65,12 +59,14 @@ async function parseKYCS(
 
   // console.debug(investProfileCategories, investProfiles, userCoupons, coupons, userKycs);
   const kycs = userKycs['hydra:member'];
-  const advices = await parseKYCS(token, api, kycs);
-  if (!advices) {
-    console.warn('No advices found');
-  }
 
+  // Below doesn't work if no strategy in account
   try {
+    const advices = await parseKYCS(token, api, kycs);
+    if (!advices) {
+      console.warn('No advices found');
+    }
+
     if (!user.investmentAccounts) {
       console.error('no investmentAccounts found', user.firstname);
       return;
