@@ -20,6 +20,33 @@ export const InvestmentAccountProvider = z.object({
   updatedAt: z.string(),
 });
 
+export const InvestmentAccount = z.object({
+  '@id': z.string(),
+  '@type': z.string(),
+  id: z.string(),
+  status: z.string(),
+  appointmentRequired: z.boolean(),
+  reference: z.string().optional(),
+  watermark: z.number(),
+  watermarkedAt: z.string().optional(),
+  providerProjectId: z.string().optional(),
+  providerContractId: z.string().optional(),
+  statusProvider: z.string().optional(),
+  profile: z.string().optional(),
+  incompatible: z.boolean(),
+  effectiveDate: z.string().optional(),
+  nextMonthlyPaymentDate: z.string().optional(),
+  lastProviderKycUpdateAt: z.string().optional(),
+  provider: z.array(InvestmentAccountProvider).or(InvestmentAccountProvider),
+  hidden: z.boolean(),
+  duration: z.number(),
+  userKyc: z.string(),
+  userKycs: z.array(z.string()),
+  uuid: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 export const MeOutput = z.object({
   '@context': z.string(),
   '@id': z.string(),
@@ -51,36 +78,7 @@ export const MeOutput = z.object({
     .optional(),
   origin: z.string().optional(),
   viewPreference: z.string(),
-  investmentAccounts: z
-    .array(
-      z.object({
-        '@id': z.string(),
-        '@type': z.string(),
-        id: z.string(),
-        status: z.string(),
-        appointmentRequired: z.boolean(),
-        reference: z.string().optional(),
-        watermark: z.number(),
-        watermarkedAt: z.string().optional(),
-        providerProjectId: z.string().optional(),
-        providerContractId: z.string().optional(),
-        statusProvider: z.string().optional(),
-        profile: z.string().optional(),
-        incompatible: z.boolean(),
-        effectiveDate: z.string().optional(),
-        nextMonthlyPaymentDate: z.string().optional(),
-        lastProviderKycUpdateAt: z.string().optional(),
-        provider: z.array(InvestmentAccountProvider).or(InvestmentAccountProvider),
-        hidden: z.boolean(),
-        duration: z.number(),
-        userKyc: z.string(),
-        userKycs: z.array(z.string()),
-        uuid: z.string(),
-        createdAt: z.string(),
-        updatedAt: z.string(),
-      })
-    )
-    .optional(),
+  investmentAccounts: z.array(InvestmentAccount).optional(),
   userSensibleData: z.array(
     z.object({
       '@id': z.string(),

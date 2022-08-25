@@ -1,6 +1,9 @@
 /* eslint-disable no-console */
 import 'dotenv/config';
+import { z } from 'zod';
 import { Api } from './src';
+
+import { InvestmentAccount } from './src/schema/v1/me';
 
 const { USERNAME, PASSWORD } = process.env;
 if (USERNAME === undefined) {
@@ -22,11 +25,27 @@ if (PASSWORD === undefined) {
   const userCoupons = await api.getUserCoupons({ token, userId });
   const coupons = await api.getCoupons({ token, userId });
   const userKycs = await api.getUserKycs({ token, userId });
+
+  // console.debug(investProfileCategories, investProfiles, userCoupons, coupons, userKycs);
+
   try {
+    if (!user.investmentAccounts) {
+      console.error(user, 'no investmentAccounts found', user.firstname);
+      return;
+    }
+
+    const activeInvestmentAccounts = user.investmentAccounts.filter(
+      (investmentAccount) => investmentAccount.status !== 'pending'
+    );
+
+    if (!activeInvestmentAccounts.length) {
+      console.error(user, 'No active investment accounts found');
+      return;
+    }
+
     const availableProducts = await Promise.all(
-      userKycs['hydra:member'].map(
-        ({ id }) => api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) })
-        // return 403 when account pending "strategy"
+      userKycs['hydra:member'].map(({ id }) =>
+        api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) })
       )
     );
     const advices = await Promise.all(
@@ -37,23 +56,18 @@ if (PASSWORD === undefined) {
         .filter(Boolean)
     );
 
-    if (!user.investmentAccounts) {
-      console.error('no investmentAccounts found');
-      return;
-    }
-
     const userFinancialCapitals = await Promise.all(
-      user.investmentAccounts.map(({ id }) =>
+      activeInvestmentAccounts.map(({ id }) =>
         api.getUserFinancialCapital({ token, userInvestmentAccountId: parseInt(id, 10) })
       )
     );
     const userInvestmentValuesInput = await Promise.all(
-      user.investmentAccounts.map(({ id }) =>
+      activeInvestmentAccounts.map(({ id }) =>
         api.getUserInvestmentValuesInput({ token, userInvestmentAccountId: parseInt(id, 10) })
       )
     );
     const userInvestmentAccountProducts = await Promise.all(
-      user.investmentAccounts.map(({ id }) =>
+      activeInvestmentAccounts.map(({ id }) =>
         api.getUserInvestmentAccountProducts({ token, userInvestmentAccountId: parseInt(id, 10) })
       )
     );
@@ -71,7 +85,7 @@ if (PASSWORD === undefined) {
       userInvestmentAccountProducts,
     });
   } catch (err) {
-    console.error('Unable to get available products, are you fully registered?'); // ,err);
+    console.error('Error while calling apis', err); // ,err);
   }
 })().catch((e) => {
   console.error(e);
