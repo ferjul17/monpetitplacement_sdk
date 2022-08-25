@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import axios, { AxiosError } from 'axios';
 import 'dotenv/config';
 import { Api } from './src';
 
@@ -10,9 +11,48 @@ if (PASSWORD === undefined) {
   throw new Error(`Missing en var "password".`);
 }
 
+function handleError(err: AxiosError | Error) {
+  if (axios.isAxiosError(err)) {
+    console.error(
+      err.code,
+      err.config.baseURL && err.config.url ? err.config.baseURL + err.config.url : '',
+      err.response?.data
+    );
+    return;
+  }
+
+  console.error('unknown error', err);
+}
+
+async function parseKYCS(
+  token: string,
+  api: Api,
+  kycs: Awaited<ReturnType<Api['getUserKycs']>>['hydra:member']
+) {
+  const advicePromises = [];
+  for (let index = 0, l = kycs.length; index < l; index += 1) {
+    const advice = kycs[index];
+    if (!advice) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    advicePromises.push(api.getAdvice({ token, adviceId: parseInt(advice.id, 10) }));
+  }
+
+  try {
+    const advices = await Promise.all(advicePromises);
+    return advices;
+  } catch (err: any) {
+    handleError(err);
+    return null;
+  }
+}
+
 (async () => {
   const api = new Api();
 
+  console.warn('login as', USERNAME);
   const { access_token: token } = await api.login({ username: USERNAME, password: PASSWORD });
   const user = await api.getMe({ token });
 
@@ -24,10 +64,15 @@ if (PASSWORD === undefined) {
   const userKycs = await api.getUserKycs({ token, userId });
 
   // console.debug(investProfileCategories, investProfiles, userCoupons, coupons, userKycs);
+  const kycs = userKycs['hydra:member'];
+  const advices = await parseKYCS(token, api, kycs);
+  if (!advices) {
+    console.warn('No advices found');
+  }
 
   try {
     if (!user.investmentAccounts) {
-      console.error(user, 'no investmentAccounts found', user.firstname);
+      console.error('no investmentAccounts found', user.firstname);
       return;
     }
 
@@ -36,7 +81,7 @@ if (PASSWORD === undefined) {
     );
 
     if (!activeInvestmentAccounts.length) {
-      console.error(user, 'No active investment accounts found');
+      console.error('No active investment accounts found');
       return;
     }
 
@@ -44,13 +89,6 @@ if (PASSWORD === undefined) {
       userKycs['hydra:member'].map(({ id }) =>
         api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) })
       )
-    );
-    const advices = await Promise.all(
-      userKycs['hydra:member']
-        .map(({ advice }) =>
-          advice ? api.getAdvice({ token, adviceId: parseInt(advice.id, 10) }) : null
-        )
-        .filter(Boolean)
     );
 
     const userFinancialCapitals = await Promise.all(
