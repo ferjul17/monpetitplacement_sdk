@@ -228,17 +228,19 @@ export class Api {
     try {
       const output = await type.parseAsync(res.data);
       // eslint-disable-next-line no-console
-      console.warn('parsing', output);
+      // console.warn('parsing', output);
 
       return output;
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error(err);
+      // console.error(err);
       return Promise.reject(err);
     }
   }
 
   #callApi<T>(options: AxiosRequestConfig, type: z.ZodType<T>): Promise<T> {
+    // eslint-disable-next-line no-console
+    console.warn('calling api', options, type);
     return Api.#call(this.#axiosApi, options, type);
   }
 

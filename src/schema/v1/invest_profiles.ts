@@ -8,9 +8,9 @@ export const InvestProfilesOutput = z.object({
   '@type': z.string(),
   'hydra:member': z.array(
     z.object({
-      '@id': z.string(),
+      '@id': z.string().or(z.number()),
       '@type': z.string(),
-      id: z.string(),
+      id: z.string().or(z.number()),
       name: z.string(),
       slug: z.string(),
       thematic: z.boolean().nullable(),
@@ -22,7 +22,7 @@ export const InvestProfilesOutput = z.object({
         id: z.number(),
         name: z.string(),
         slug: z.string(),
-        thematic: z.boolean(),
+        thematic: z.boolean().nullable(),
         position: z.unknown().nullable(),
         color: z.string(),
         description: z.string().nullable(),
