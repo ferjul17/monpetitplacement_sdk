@@ -497,12 +497,10 @@ export class Api {
     path: string,
     options: RequestInit,
     type: z.ZodType<T>,
-    dispatcher?: MockClient
   ): Promise<T | RemoteError> {
     const stringBody = JSON.stringify(options.body);
     const endpoint = baseURLForFacade(facade)!.concat(path);
     const res = await fetch(endpoint, {
-      dispatcher,
       ...options,
       body: options.body instanceof URLSearchParams ? options.body : stringBody,
     });
