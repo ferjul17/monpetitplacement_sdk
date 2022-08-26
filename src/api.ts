@@ -496,7 +496,7 @@ export class Api {
     facade: MPPFacade,
     path: string,
     options: RequestInit,
-    type: z.ZodType<T>,
+    type: z.ZodType<T>
   ): Promise<T | RemoteError> {
     const stringBody = JSON.stringify(options.body);
     const endpoint = baseURLForFacade(facade)!.concat(path);
