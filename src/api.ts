@@ -356,8 +356,8 @@ export class Api {
   }: z.infer<typeof GetInvestProfileInput>): Promise<z.infer<typeof GetInvestProfileOutput>> {
     return this.#callPublicApi(
       {
-        method: 'GET',
-        url: `/invest-profile/history/${profile}`,
+        method: 'POST',
+        url: `invest-profile/history/${profile}`,
       },
       GetInvestProfileOutput
     );

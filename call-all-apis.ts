@@ -44,9 +44,20 @@ function defaultHandler(err: unknown) {
   const { access_token: token } = await api.login({ username: USERNAME, password: PASSWORD });
   const user = await api.getMe({ token });
 
+  const profileNames = ['volontaire', 'energique', 'ambitieux', 'intrepide'];
+
+  const publicInvestorProfiles = profileNames.map((profile) => {
+    return api.getInvestProfileHistory({
+      profile,
+    });
+  });
+
+  const profiles = await Promise.all(publicInvestorProfiles);
+
   logger.warn({
     action: 'login',
     username: USERNAME,
+    // profiles,
     // user,
   });
 
@@ -164,6 +175,7 @@ function defaultHandler(err: unknown) {
       )
     );
     logger.info({
+      profiles,
       investProfileCategories,
       investProfiles,
       user,
