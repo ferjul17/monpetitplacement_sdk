@@ -124,7 +124,7 @@ function defaultHandler(err: unknown) {
   if (!activeInvestmentAccounts.length) {
     logger.error({
       message: 'No active investment accounts found',
-      activeInvestmentAccounts,
+      accounts: user.investmentAccounts,
     });
     return;
   }
