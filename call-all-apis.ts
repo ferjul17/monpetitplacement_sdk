@@ -5,7 +5,9 @@ import 'dotenv/config';
 import { logger } from './src/logger';
 
 import { Api } from './src';
-import { MPPError } from './src/errors';
+import { MPPError } from './src/errors/mpp_error';
+import { TokenError } from './src/errors/token_error';
+import { RemoteError } from './src/api';
 
 const { USERNAME, PASSWORD } = process.env;
 if (USERNAME === undefined) {
@@ -23,6 +25,14 @@ function isMPPError(err: unknown): err is MPPError {
   return !!((err as MPPError).description && (err as MPPError).error);
 }
 
+function isTokenError(err: unknown): err is TokenError {
+  return !!((err as TokenError).title && (err as TokenError).type);
+}
+
+function isExternalError(err: unknown): err is RemoteError {
+  return isMPPError(err) || isTokenError(err);
+}
+
 function defaultHandler(err: unknown) {
   if (err instanceof Error) {
     handleRemoteError(err);
@@ -34,14 +44,30 @@ function defaultHandler(err: unknown) {
     return;
   }
 
+  if (isTokenError(err)) {
+    logger.fatal('token error', err);
+    return;
+  }
+
   logger.fatal(err);
 }
 
 (async () => {
   const api = new Api();
 
-  const { access_token: token } = await api.login({ username: USERNAME, password: PASSWORD });
+  const res = await api.login({ username: USERNAME, password: PASSWORD });
+  if (isExternalError(res)) {
+    logger.fatal('login error', res);
+    return;
+  }
+
+  const token = res.access_token;
+
   const user = await api.getMe({ token });
+  if (isExternalError(user)) {
+    logger.fatal('getMe error', res);
+    return;
+  }
 
   const profileNames = ['volontaire', 'energique', 'ambitieux', 'intrepide'];
 
@@ -64,6 +90,13 @@ function defaultHandler(err: unknown) {
   const userCoupons = await api.getUserCoupons({ token, userId });
   const coupons = await api.getCoupons({ token, userId });
   const userKycs = await api.getUserKycs({ token, userId });
+
+  if (isExternalError(userKycs)) {
+    logger.fatal('getUserKycs error', userKycs);
+    return;
+  }
+
+  const members = userKycs['hydra:member'];
 
   if (!user.investmentAccounts) {
     logger.error({
@@ -97,9 +130,7 @@ function defaultHandler(err: unknown) {
 
   async function allActivatedEndpoints() {
     const advices = await Promise.all(
-      userKycs['hydra:member'].map((adviceId) =>
-        api.getAdvice({ token, adviceId: parseInt(adviceId.id, 10) })
-      )
+      members.map((adviceId) => api.getAdvice({ token, adviceId: parseInt(adviceId.id, 10) }))
     );
     if (advices && !advices.length) {
       logger.warn('No advices found');
@@ -107,9 +138,7 @@ function defaultHandler(err: unknown) {
 
     // below is denied for inactive investment accounts
     const availableProducts = await Promise.all(
-      userKycs['hydra:member'].map(({ id }) =>
-        api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) })
-      )
+      members.map(({ id }) => api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) }))
     );
 
     const userFinancialCapitals = await Promise.all(

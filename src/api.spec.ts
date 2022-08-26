@@ -52,17 +52,14 @@ import {
 } from './schema/v1/consulting_analysis';
 import { GetInvestProfileInput, GetInvestProfileOutput } from './schema/v1/public_invest_profile';
 
+const mockAgent: MockAgent = new MockAgent({});
+setGlobalDispatcher(mockAgent);
+let mockPool = mockAgent.get(baseURLForFacade('sso'));
+
 describe('Api', () => {
   it('should throw when facade unknown', () => {
-    expect(baseURLForFacade('miaow' as any)).toBeInstanceOf(Error);
+    expect(baseURLForFacade('miaow' as any)).toThrow(Error);
   });
-
-  const mockAgent: MockAgent = new MockAgent({
-    // connections: 2,
-  });
-  setGlobalDispatcher(mockAgent);
-
-  let mockPool = mockAgent.get(baseURLForFacade('sso'));
 
   it('throws a ZodError in case the output does not match the expected interface', async () => {
     const sdk = new Api();
@@ -71,7 +68,7 @@ describe('Api', () => {
       method: 'POST',
     });
 
-    await expect(sdk.login({ username: '', password: '' })).rejects.toEqual(
+    expect(sdk.login({ username: '', password: '' })).toEqual(
       expect.any(ZodError).or(
         expect.objectContaining({
           error: 'invalid_grant',
@@ -96,13 +93,13 @@ describe('Api', () => {
       data.set('password', creds.password);
 
       const mockedResponse: Partial<z.infer<typeof AuthenticationTokenOutput> | RemoteError> = {
-        // access_token: faker.datatype.string(100),
+        access_token: faker.datatype.string(100),
         expires_in: 300,
         'not-before-policy': 0,
         refresh_expires_in: 3600,
-        // refresh_token: faker.datatype.string(100),
+        refresh_token: faker.datatype.string(100),
         scope: 'email profile',
-        // session_state: faker.datatype.uuid(),
+        session_state: faker.datatype.uuid(),
         token_type: 'Bearer',
       };
 
