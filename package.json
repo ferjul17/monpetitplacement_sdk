@@ -1,5 +1,5 @@
 {
-  "name": "@m1m1s1ku/mon-petit-placement",
+  "name": "@m1m1s1ku/monpetitplacement_sdk",
   "version": "1.0.0",
   "description": "TypeScript library for accessing the French fintech company MonPetitPlacement's services.",
   "main": "./lib/index.js",
@@ -27,7 +27,7 @@
     "directory": "lib"
   },
   "publishConfig": {
-    "@m1m1s1ku:registry": "https://npm.pkg.github.com"
+    "registry": "https://npm.pkg.github.com"
   },
   "keywords": [],
   "author": "Julien Ferrier <npm-package-monpetitplacement_sdk@ferrier.email>",
