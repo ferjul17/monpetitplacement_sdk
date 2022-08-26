@@ -12,7 +12,7 @@ if (PASSWORD === undefined) {
   throw new Error(`Missing en var "password".`);
 }
 
-function handleError(err: AxiosError | Error) {
+function handleRemoteError(err: AxiosError | Error) {
   if (axios.isAxiosError(err)) {
     logger.error({
       message: err.message,
@@ -45,6 +45,15 @@ async function parseKYCS(
   return Promise.all(advicePromises);
 }
 
+function defaultHandler(err: unknown) {
+  if (err instanceof Error || err instanceof AxiosError) {
+    handleRemoteError(err);
+    return;
+  }
+
+  logger.fatal(err);
+}
+
 (async () => {
   const api = new Api();
 
@@ -66,73 +75,64 @@ async function parseKYCS(
   const kycs = userKycs['hydra:member'];
 
   // Below doesn't work if no strategy in account
-  try {
-    const advices = await parseKYCS(token, api, kycs);
-    if (!advices) {
-      logger.warn('No advices found');
-    }
-
-    if (!user.investmentAccounts) {
-      logger.error('no investmentAccounts found', user.firstname);
-      return;
-    }
-
-    const activeInvestmentAccounts = user.investmentAccounts.filter(
-      (investmentAccount) => investmentAccount.status !== 'pending'
-    );
-
-    if (!activeInvestmentAccounts.length) {
-      logger.error('No active investment accounts found');
-      return;
-    }
-
-    // below is denied for inactive investment accounts
-    const availableProducts = await Promise.all(
-      userKycs['hydra:member'].map(({ id }) =>
-        api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) })
-      )
-    );
-
-    const userFinancialCapitals = await Promise.all(
-      activeInvestmentAccounts.map(({ id }) =>
-        api.getUserFinancialCapital({ token, userInvestmentAccountId: parseInt(id, 10) })
-      )
-    );
-
-    const userInvestmentValuesInput = await Promise.all(
-      activeInvestmentAccounts.map(({ id }) =>
-        api.getUserInvestmentValuesInput({ token, userInvestmentAccountId: parseInt(id, 10) })
-      )
-    );
-
-    const userInvestmentAccountProducts = await Promise.all(
-      activeInvestmentAccounts.map(({ id }) =>
-        api.getUserInvestmentAccountProducts({ token, userInvestmentAccountId: parseInt(id, 10) })
-      )
-    );
-
-    logger.info({
-      investProfileCategories,
-      investProfiles,
-      user,
-      userCoupons,
-      coupons,
-      userKycs,
-      availableProducts,
-      advices,
-      userFinancialCapitals,
-      userInvestmentValuesInput,
-      userInvestmentAccountProducts,
-    });
-  } catch (err) {
-    if (err instanceof Error || err instanceof AxiosError) {
-      handleError(err);
-      return;
-    }
-
-    logger.error('Error while calling apis', err);
+  const advices = await parseKYCS(token, api, kycs).catch(defaultHandler);
+  if (advices && !advices.length) {
+    logger.warn('No advices found');
   }
+
+  if (!user.investmentAccounts) {
+    logger.error('no investmentAccounts found', user.firstname);
+    return;
+  }
+
+  const activeInvestmentAccounts = user.investmentAccounts.filter(
+    (investmentAccount) => investmentAccount.status !== 'pending'
+  );
+
+  if (!activeInvestmentAccounts.length) {
+    logger.error('No active investment accounts found');
+    return;
+  }
+
+  // below is denied for inactive investment accounts
+  const availableProducts = await Promise.all(
+    userKycs['hydra:member'].map(({ id }) =>
+      api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) })
+    )
+  );
+
+  const userFinancialCapitals = await Promise.all(
+    activeInvestmentAccounts.map(({ id }) =>
+      api.getUserFinancialCapital({ token, userInvestmentAccountId: parseInt(id, 10) })
+    )
+  );
+
+  const userInvestmentValuesInput = await Promise.all(
+    activeInvestmentAccounts.map(({ id }) =>
+      api.getUserInvestmentValuesInput({ token, userInvestmentAccountId: parseInt(id, 10) })
+    )
+  );
+
+  const userInvestmentAccountProducts = await Promise.all(
+    activeInvestmentAccounts.map(({ id }) =>
+      api.getUserInvestmentAccountProducts({ token, userInvestmentAccountId: parseInt(id, 10) })
+    )
+  );
+
+  logger.info({
+    investProfileCategories,
+    investProfiles,
+    user,
+    userCoupons,
+    coupons,
+    userKycs,
+    availableProducts,
+    advices,
+    userFinancialCapitals,
+    userInvestmentValuesInput,
+    userInvestmentAccountProducts,
+  });
 })().catch((e) => {
-  logger.error(e);
+  defaultHandler(e);
   process.exit(-1);
 });
