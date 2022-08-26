@@ -688,7 +688,8 @@ describe('Api', () => {
                     // eslint-disable-next-line max-len
                     // abbrev fr : Document d'informations clés pour l'investisseur https://www.amf-france.org/sites/default/files/contenu_simple/guide/guide_pedagogique/S%27informer%20sur%20%20Le%20document%20d%27information%20cle%20pour%20l%27investisseur%20%28DICI%29.pdf
                     dici: 'Fund/dici',
-                    isin: 'Fund/isin', // abbrev : International Securities Identification Number
+                    // eslint-disable-next-line max-len
+                    isin: 'Fund/isin', // abbrev : International Securities Identification Number (can used with any broker)
                     slug: 'Fund/slug',
                     name: 'Fund/name',
                     percent: 'Fund/percent',
