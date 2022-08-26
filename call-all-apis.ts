@@ -92,21 +92,21 @@ function defaultHandler(err: unknown) {
                     slug: fund.slug,
                   };
                 }),
-                monthlyAmount: monthlyDistribution.amount,
-                monthlyDistribution: {
-                  name: monthlyDistribution.name,
-                  percent: monthlyDistribution.percent,
-                  amount: monthlyDistribution.amount,
-                  funds: initialDistribution.funds.map((fund) => {
-                    return {
-                      amount: fund.amount,
-                      isin: fund.isin,
-                      name: fund.name,
-                      percent: fund.percent,
-                      slug: fund.slug,
-                    };
-                  }),
-                },
+              },
+              monthlyAmount: monthlyDistribution.amount,
+              monthlyDistribution: {
+                name: monthlyDistribution.name,
+                percent: monthlyDistribution.percent,
+                amount: monthlyDistribution.amount,
+                funds: initialDistribution.funds.map((fund) => {
+                  return {
+                    amount: fund.amount,
+                    isin: fund.isin,
+                    name: fund.name,
+                    percent: fund.percent,
+                    slug: fund.slug,
+                  };
+                }),
               },
             },
           });
@@ -115,8 +115,6 @@ function defaultHandler(err: unknown) {
         });
     })
   );
-
-
 
   // Below doesn't work if no strategy in account
   const advices = await Promise.all(
