@@ -108,53 +108,6 @@ async function retrieveCreds() {
     return;
   }
 
-  async function allActivatedEndpoints() {
-    const advices = await Promise.all(
-      members.map((adviceId) => api.getAdvice({ token, adviceId: parseInt(adviceId.id, 10) }))
-    );
-    if (advices && !advices.length) {
-      logger.warn('No advices found');
-    }
-
-    // below is denied for inactive investment accounts
-    const availableProducts = await Promise.all(
-      members.map(({ id }) => api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) }))
-    );
-
-    const userFinancialCapitals = await Promise.all(
-      activeInvestmentAccounts.map(({ id }) =>
-        api.getUserFinancialCapital({ token, userInvestmentAccountId: parseInt(id, 10) })
-      )
-    );
-
-    const userInvestmentValuesInput = await Promise.all(
-      activeInvestmentAccounts.map(({ id }) =>
-        api.getUserInvestmentValuesInput({ token, userInvestmentAccountId: parseInt(id, 10) })
-      )
-    );
-
-    const userInvestmentAccountProducts = await Promise.all(
-      activeInvestmentAccounts.map(({ id }) =>
-        api.getUserInvestmentAccountProducts({ token, userInvestmentAccountId: parseInt(id, 10) })
-      )
-    );
-    logger.info({
-      profiles,
-      investProfileCategories,
-      investProfiles,
-      user,
-      userCoupons,
-      coupons,
-      userKycs,
-      advicesDTO,
-      advices,
-      availableProducts,
-      userFinancialCapitals,
-      userInvestmentValuesInput,
-      userInvestmentAccountProducts,
-    });
-  }
-
   logger.warn('Are you still waiting for a strategy ?');
   prompt.start();
   const response = await prompt.get(['strategyComplete']);
@@ -162,7 +115,50 @@ async function retrieveCreds() {
     return;
   }
 
-  await allActivatedEndpoints();
+  const advices = await Promise.all(
+    members.map((adviceId) => api.getAdvice({ token, adviceId: parseInt(adviceId.id, 10) }))
+  );
+  if (advices && !advices.length) {
+    logger.warn('No advices found');
+  }
+
+  // below is denied for inactive investment accounts
+  const availableProducts = await Promise.all(
+    members.map(({ id }) => api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) }))
+  );
+
+  const userFinancialCapitals = await Promise.all(
+    activeInvestmentAccounts.map(({ id }) =>
+      api.getUserFinancialCapital({ token, userInvestmentAccountId: parseInt(id, 10) })
+    )
+  );
+
+  const userInvestmentValuesInput = await Promise.all(
+    activeInvestmentAccounts.map(({ id }) =>
+      api.getUserInvestmentValuesInput({ token, userInvestmentAccountId: parseInt(id, 10) })
+    )
+  );
+
+  const userInvestmentAccountProducts = await Promise.all(
+    activeInvestmentAccounts.map(({ id }) =>
+      api.getUserInvestmentAccountProducts({ token, userInvestmentAccountId: parseInt(id, 10) })
+    )
+  );
+  logger.info({
+    profiles,
+    investProfileCategories,
+    investProfiles,
+    user,
+    userCoupons,
+    coupons,
+    userKycs,
+    advicesDTO,
+    advices,
+    availableProducts,
+    userFinancialCapitals,
+    userInvestmentValuesInput,
+    userInvestmentAccountProducts,
+  });
 })().catch((e) => {
   logger.fatal(e);
   process.exit(-1);
