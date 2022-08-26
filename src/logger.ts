@@ -4,7 +4,7 @@ import SonicBoom from 'sonic-boom';
 export const logger = pino(
   {
     name: 'MonPetitPlacementSDK',
-    level: 'trace',
+    level: 'info',
   },
   new SonicBoom({ fd: process.stdout.fd })
 );

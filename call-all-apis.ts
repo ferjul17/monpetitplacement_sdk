@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import prompt from 'prompt';
 import axios, { AxiosError } from 'axios';
 import 'dotenv/config';
 
@@ -56,9 +57,6 @@ function defaultHandler(err: unknown) {
   const coupons = await api.getCoupons({ token, userId });
   const userKycs = await api.getUserKycs({ token, userId });
 
-  // console.debug(investProfileCategories, investProfiles, userCoupons, coupons, userKycs);
-  const kycs = userKycs['hydra:member'];
-
   if (!user.investmentAccounts) {
     logger.error({
       message: 'no investmentAccounts found',
@@ -69,9 +67,11 @@ function defaultHandler(err: unknown) {
 
   const advicesDTO = await Promise.all(
     user.investmentAccounts?.map((investmentAccount) => {
-      return api
-        .getAdviceDTO({ token, userInvestmentAccountId: parseInt(investmentAccount.id, 10) })
-        .then((dto) => {
+      return api.getAdviceDTO({
+        token,
+        userInvestmentAccountId: parseInt(investmentAccount.id, 10),
+      });
+      /* .then((dto) => {
           const initialDistribution = dto.mppChoice.initialDistribution[0];
           const monthlyDistribution = dto.mppChoice.monthlyDistribution[0];
           logger.warn({
@@ -112,18 +112,11 @@ function defaultHandler(err: unknown) {
           });
 
           return dto;
-        });
+        }); */
     })
   );
 
   // Below doesn't work if no strategy in account
-  const advices = await Promise.all(
-    kycs.map((adviceId) => api.getAdvice({ token, adviceId: parseInt(adviceId.id, 10) }))
-  );
-  if (advices && !advices.length) {
-    logger.warn('No advices found');
-  }
-
   const activeInvestmentAccounts = user.investmentAccounts.filter(
     (investmentAccount) => investmentAccount.status !== 'pending'
   );
@@ -131,54 +124,69 @@ function defaultHandler(err: unknown) {
   if (!activeInvestmentAccounts.length) {
     logger.error({
       message: 'No active investment accounts found',
-      // investmentAccounts: user.investmentAccounts,
+      activeInvestmentAccounts,
     });
     return;
   }
 
-  logger.info({
-    message: 'got these active investment accounts',
-    // activeInvestmentAccounts,
-  });
+  async function allActivatedEndpoints() {
+    const advices = await Promise.all(
+      userKycs['hydra:member'].map((adviceId) =>
+        api.getAdvice({ token, adviceId: parseInt(adviceId.id, 10) })
+      )
+    );
+    if (advices && !advices.length) {
+      logger.warn('No advices found');
+    }
 
-  // below is denied for inactive investment accounts
-  const availableProducts = await Promise.all(
-    userKycs['hydra:member'].map(({ id }) =>
-      api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) })
-    )
-  );
+    // below is denied for inactive investment accounts
+    const availableProducts = await Promise.all(
+      userKycs['hydra:member'].map(({ id }) =>
+        api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) })
+      )
+    );
 
-  const userFinancialCapitals = await Promise.all(
-    activeInvestmentAccounts.map(({ id }) =>
-      api.getUserFinancialCapital({ token, userInvestmentAccountId: parseInt(id, 10) })
-    )
-  );
+    const userFinancialCapitals = await Promise.all(
+      activeInvestmentAccounts.map(({ id }) =>
+        api.getUserFinancialCapital({ token, userInvestmentAccountId: parseInt(id, 10) })
+      )
+    );
 
-  const userInvestmentValuesInput = await Promise.all(
-    activeInvestmentAccounts.map(({ id }) =>
-      api.getUserInvestmentValuesInput({ token, userInvestmentAccountId: parseInt(id, 10) })
-    )
-  );
+    const userInvestmentValuesInput = await Promise.all(
+      activeInvestmentAccounts.map(({ id }) =>
+        api.getUserInvestmentValuesInput({ token, userInvestmentAccountId: parseInt(id, 10) })
+      )
+    );
 
-  const userInvestmentAccountProducts = await Promise.all(
-    activeInvestmentAccounts.map(({ id }) =>
-      api.getUserInvestmentAccountProducts({ token, userInvestmentAccountId: parseInt(id, 10) })
-    )
-  );
+    const userInvestmentAccountProducts = await Promise.all(
+      activeInvestmentAccounts.map(({ id }) =>
+        api.getUserInvestmentAccountProducts({ token, userInvestmentAccountId: parseInt(id, 10) })
+      )
+    );
+    logger.info({
+      investProfileCategories,
+      investProfiles,
+      user,
+      userCoupons,
+      coupons,
+      userKycs,
+      advicesDTO,
+      advices,
+      availableProducts,
+      userFinancialCapitals,
+      userInvestmentValuesInput,
+      userInvestmentAccountProducts,
+    });
+  }
 
-  logger.info({
-    investProfileCategories,
-    investProfiles,
-    user,
-    userCoupons,
-    coupons,
-    userKycs,
-    availableProducts,
-    advicesDTO,
-    advices,
-    userFinancialCapitals,
-    userInvestmentValuesInput,
-    userInvestmentAccountProducts,
+  logger.warn('Are you still waiting for a strategy ?');
+  prompt.start();
+  prompt.get(['strategyComplete'], async function onAnswer(err, result) {
+    if (result.strategyComplete !== 'y') {
+      return;
+    }
+
+    await allActivatedEndpoints();
   });
 })().catch((e) => {
   defaultHandler(e);
