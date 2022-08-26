@@ -685,8 +685,10 @@ describe('Api', () => {
                   '@context': {
                     '@vocab': 'https://api.monpetitplacement.fr/v1/docs.jsonld#',
                     hydra: 'http://www.w3.org/ns/hydra/core#',
+                    // eslint-disable-next-line max-len
+                    // abbrev fr : Document d'informations clés pour l'investisseur https://www.amf-france.org/sites/default/files/contenu_simple/guide/guide_pedagogique/S%27informer%20sur%20%20Le%20document%20d%27information%20cle%20pour%20l%27investisseur%20%28DICI%29.pdf
                     dici: 'Fund/dici',
-                    isin: 'Fund/isin',
+                    isin: 'Fund/isin', // abbrev : International Securities Identification Number
                     slug: 'Fund/slug',
                     name: 'Fund/name',
                     percent: 'Fund/percent',
