@@ -1,7 +1,6 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+/* eslint-disable class-methods-use-this */
+import { Headers, fetch, RequestInit } from 'undici';
 import { z } from 'zod';
-
-// import { logger } from './logger';
 
 import { AuthenticationTokenInput, AuthenticationTokenOutput } from './schema/authentication-token';
 import { UserKycsInput, UserKycsOutput } from './schema/v1/user_kycs';
@@ -53,29 +52,26 @@ import {
 } from './schema/v1/consulting_analysis';
 import { GetInvestProfileInput, GetInvestProfileOutput } from './schema/v1/public_invest_profile';
 
-export class Api {
-  readonly #axiosApi: AxiosInstance;
+const kApiBaseURL = 'https://api.monpetitplacement.fr/';
+const kSsoBaseURL = 'https://sso.monpetitplacement.fr/';
+const kPublicBaseURL = 'https://www.monpetitplacement.fr/';
 
-  readonly #axiosSso: AxiosInstance;
+type MPPFacade = 'api' | 'sso' | 'public';
 
-  readonly #axiosPublic: AxiosInstance;
-
-  public constructor(
-    {
-      apiBaseUrl,
-      ssoBaseUrl,
-      publicBaseUrl,
-    }: { apiBaseUrl: string; ssoBaseUrl: string; publicBaseUrl: string } = {
-      apiBaseUrl: 'https://api.monpetitplacement.fr/',
-      ssoBaseUrl: 'https://sso.monpetitplacement.fr/',
-      publicBaseUrl: 'https://www.monpetitplacement.fr/',
-    }
-  ) {
-    this.#axiosApi = axios.create({ baseURL: apiBaseUrl });
-    this.#axiosSso = axios.create({ baseURL: ssoBaseUrl });
-    this.#axiosPublic = axios.create({ baseURL: publicBaseUrl });
+export function baseURLForFacade(facade: MPPFacade): string {
+  switch (facade) {
+    case 'api':
+      return kApiBaseURL;
+    case 'sso':
+      return kSsoBaseURL;
+    case 'public':
+      return kPublicBaseURL;
+    default:
+      throw new Error(`Unexpected facade ${facade}`);
   }
+}
 
+export class Api {
   public async login({
     username,
     password,
@@ -86,10 +82,11 @@ export class Api {
     data.set('username', username);
     data.set('password', password);
     return this.#callSso(
+      'auth/realms/mpp-prod/protocol/openid-connect/token',
       {
         method: 'POST',
-        url: 'auth/realms/mpp-prod/protocol/openid-connect/token',
-        data,
+        headers: {},
+        body: data,
       },
       AuthenticationTokenOutput
     );
@@ -97,10 +94,13 @@ export class Api {
 
   public async getMe({ token }: z.infer<typeof MeInput>): Promise<z.infer<typeof MeOutput>> {
     return this.#callApi(
+      `v1/me`,
       {
         method: 'GET',
-        url: `v1/me`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       MeOutput
     );
@@ -110,10 +110,13 @@ export class Api {
     token,
   }: z.infer<typeof MPPTwitchInput>): Promise<z.infer<typeof MPPTwitchOutput>> {
     return this.#callApi(
+      `v1/settings/twitch.json`,
       {
         method: 'GET',
-        url: `v1/settings/twitch.json`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       MPPTwitchOutput
     );
@@ -123,10 +126,13 @@ export class Api {
     token,
   }: z.infer<typeof AdviceWaitingVideoInput>): Promise<z.infer<typeof AdviceWaitingVideoOutput>> {
     return this.#callApi(
+      `v1/settings/advice-waiting-video.json`,
       {
         method: 'GET',
-        url: `v1/settings/advice-waiting-video.json`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       AdviceWaitingVideoOutput
     );
@@ -137,10 +143,13 @@ export class Api {
     userId,
   }: z.infer<typeof UserKycsInput>): Promise<z.infer<typeof UserKycsOutput>> {
     return this.#callApi(
+      `v1/users/${userId}/user_kycs`,
       {
         method: 'GET',
-        url: `v1/users/${userId}/user_kycs`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       UserKycsOutput
     );
@@ -151,10 +160,13 @@ export class Api {
     userInvestmentAccountId,
   }: z.infer<typeof UserAdviceDTOInput>): Promise<z.infer<typeof UserAdviceDTOOutput>> {
     return this.#callApi(
+      `v1/user_investment_accounts/${userInvestmentAccountId}/advice_dto`,
       {
         method: 'GET',
-        url: `v1/user_investment_accounts/${userInvestmentAccountId}/advice_dto`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       UserAdviceDTOOutput
     );
@@ -165,10 +177,13 @@ export class Api {
     provider,
   }: z.infer<typeof UserKycQuestionsInput>): Promise<z.infer<typeof UserKycQuestionsOutput>> {
     return this.#callApi(
+      `v1/investment_account_providers/${provider}/kyc_questions`,
       {
         method: 'GET',
-        url: `v1/investment_account_providers/${provider}/kyc_questions`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       UserKycQuestionsOutput
     );
@@ -178,10 +193,13 @@ export class Api {
     token,
   }: z.infer<typeof UserKycCategoryInput>): Promise<z.infer<typeof UserKycCategoryOutput>> {
     return this.#callApi(
+      `v1/kyc_categories`,
       {
         method: 'GET',
-        url: `v1/kyc_categories`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       UserKycCategoryOutput
     );
@@ -192,10 +210,13 @@ export class Api {
     userId,
   }: z.infer<typeof UserCouponsInput>): Promise<z.infer<typeof UserCouponsOutput>> {
     return this.#callApi(
+      `v1/users/${userId}/user_coupons`,
       {
         method: 'GET',
-        url: `v1/users/${userId}/user_coupons`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       UserCouponsOutput
     );
@@ -206,10 +227,13 @@ export class Api {
     userId,
   }: z.infer<typeof CouponsInput>): Promise<z.infer<typeof CouponsOutput>> {
     return this.#callApi(
+      `v1/users/${userId}/coupons`,
       {
         method: 'GET',
-        url: `v1/users/${userId}/coupons`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       CouponsOutput
     );
@@ -220,10 +244,13 @@ export class Api {
     adviceId,
   }: z.infer<typeof AdviceInput>): Promise<z.infer<typeof AdviceOutput>> {
     return this.#callApi(
+      `v1/advice/${adviceId}`,
       {
         method: 'GET',
-        url: `v1/advice/${adviceId}`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       AdviceOutput
     );
@@ -235,10 +262,13 @@ export class Api {
     z.infer<typeof InvestProfileCategoriesOutput>
   > {
     return this.#callApi(
+      `v1/invest_profile_categories`,
       {
         method: 'GET',
-        url: `v1/invest_profile_categories`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       InvestProfileCategoriesOutput
     );
@@ -248,10 +278,13 @@ export class Api {
     token,
   }: z.infer<typeof InvestProfilesInput>): Promise<z.infer<typeof InvestProfilesOutput>> {
     return this.#callApi(
+      `v1/invest_profiles`,
       {
         method: 'GET',
-        url: `v1/invest_profiles`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       InvestProfilesOutput
     );
@@ -264,10 +297,13 @@ export class Api {
     z.infer<typeof UserFinancialCapitalOutput>
   > {
     return this.#callApi(
+      `v1/user_investment_accounts/${userInvestmentAccountId}/user_financial_capital`,
       {
         method: 'GET',
-        url: `v1/user_investment_accounts/${userInvestmentAccountId}/user_financial_capital`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       UserFinancialCapitalOutput
     );
@@ -280,10 +316,13 @@ export class Api {
     z.infer<typeof UserInvestmentValuesOutput>
   > {
     return this.#callApi(
+      `v1/user_investment_accounts/${userInvestmentAccountId}/user_investment_values`,
       {
         method: 'GET',
-        url: `v1/user_investment_accounts/${userInvestmentAccountId}/user_investment_values`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       UserInvestmentValuesOutput
     );
@@ -296,10 +335,13 @@ export class Api {
     z.infer<typeof UserInvestmentAccountProvidersOutput>
   > {
     return this.#callApi(
+      `v1/investment_account_providers/${provider}`,
       {
         method: 'GET',
-        url: `v1/investment_account_providers/${provider}`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       UserInvestmentAccountProvidersOutput
     );
@@ -312,10 +354,13 @@ export class Api {
     z.infer<typeof UserInvestmentAccountOutput>
   > {
     return this.#callApi(
+      `v1/user_investment_accounts/${userInvestmentAccountId}`,
       {
         method: 'GET',
-        url: `v1/user_investment_accounts/${userInvestmentAccountId}`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       UserInvestmentAccountOutput
     );
@@ -328,10 +373,13 @@ export class Api {
     z.infer<typeof UserInvestmentAccountProductsOutput>
   > {
     return this.#callApi(
+      `v1/user_investment_accounts/${userInvestmentAccountId}/user_investment_account_products`,
       {
         method: 'GET',
-        url: `v1/user_investment_accounts/${userInvestmentAccountId}/user_investment_account_products`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       UserInvestmentAccountProductsOutput
     );
@@ -342,10 +390,13 @@ export class Api {
     userKycsId,
   }: z.infer<typeof AvailableProductsInput>): Promise<z.infer<typeof AvailableProductsOutput>> {
     return this.#callApi(
+      `v1/user_kycs/${userKycsId}/available_products`,
       {
         method: 'GET',
-        url: `v1/user_kycs/${userKycsId}/available_products`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       AvailableProductsOutput
     );
@@ -355,12 +406,29 @@ export class Api {
     profile,
   }: z.infer<typeof GetInvestProfileInput>): Promise<z.infer<typeof GetInvestProfileOutput>> {
     return this.#callPublicApi(
+      `invest-profile/history/${profile}`,
       {
         method: 'POST',
-        url: `invest-profile/history/${profile}`,
+        body: null,
+        headers: {
+          accept: 'application/json, text/plain, */*',
+          'accept-language': 'en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7',
+          'content-type': 'application/json;charset=utf-8',
+          'sec-ch-ua': '"Chromium";v="107", "Not=A?Brand";v="24"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"macOS"',
+          'sec-fetch-dest': 'empty',
+          'sec-fetch-mode': 'cors',
+          'sec-fetch-site': 'same-origin',
+          'x-requested-with': 'XMLHttpRequest',
+          Referer: 'https://www.monpetitplacement.fr/fr/portefeuilles/volontaire',
+          'Referrer-Policy': 'strict-origin-when-cross-origin',
+        },
       },
       GetInvestProfileOutput
-    );
+    ).catch((err) => {
+      return err;
+    });
   }
 
   public async getInitialConsultingAnalysis({
@@ -370,10 +438,13 @@ export class Api {
     z.infer<typeof GetConsultingAnalaysisOutput>
   > {
     return this.#callApi(
+      `v1/user_kycs/${userKycsId}/consulting_analysis/initial`,
       {
         method: 'GET',
-        url: `v1/user_kycs/${userKycsId}/consulting_analysis/initial`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
       GetConsultingAnalaysisOutput
     );
@@ -386,36 +457,35 @@ export class Api {
     z.infer<typeof GetConsultingAnalaysisOutput>
   > {
     return this.#callApi(
+      `v1/user_kycs/${userKycsId}/consulting_analysis/monthly`,
       {
         method: 'GET',
-        url: `v1/user_kycs/${userKycsId}/consulting_analysis/monthly`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        }),
       },
       GetConsultingAnalaysisOutput
     );
   }
 
   static async #call<T>(
-    axiosInstance: AxiosInstance,
-    options: AxiosRequestConfig,
+    facade: MPPFacade,
+    path: string,
+    options: RequestInit,
     type: z.ZodType<T>
   ): Promise<T> {
-    const res = await axiosInstance.request(options);
-    /* 
-    const { baseURL } = axiosInstance.defaults;
-    const isSSO = baseURL?.indexOf('sso') !== -1;
-    logger.trace({
-      action: 'call',
-      isSSO,
-      code: res.status,
-      url: baseURL + (options.url ?? ''),
-      method: options.method,
-      type: type.description,
-      // data: res.data,
-    }); */
+    const stringBody = JSON.stringify(options.body);
+    const endpoint = baseURLForFacade(facade).concat(path);
+    const res = await fetch(endpoint, {
+      ...options,
+      body: options.body instanceof URLSearchParams ? options.body : stringBody,
+    });
+    const body = await res.json();
+    console.warn(endpoint, 'body !', body);
 
     try {
-      const output = await type.parseAsync(res.data);
+      const output = await type.parseAsync(body);
 
       return output;
     } catch (err) {
@@ -423,15 +493,15 @@ export class Api {
     }
   }
 
-  #callPublicApi<T>(options: AxiosRequestConfig, type: z.ZodType<T>): Promise<T> {
-    return Api.#call(this.#axiosPublic, options, type);
+  #callPublicApi<T>(url: string, options: RequestInit, type: z.ZodType<T>): Promise<T> {
+    return Api.#call('public', url, options, type);
   }
 
-  #callApi<T>(options: AxiosRequestConfig, type: z.ZodType<T>): Promise<T> {
-    return Api.#call(this.#axiosApi, options, type);
+  #callApi<T>(url: string, options: RequestInit, type: z.ZodType<T>): Promise<T> {
+    return Api.#call('api', url, options, type);
   }
 
-  #callSso<T>(options: AxiosRequestConfig, type: z.ZodType<T>): Promise<T> {
-    return Api.#call(this.#axiosSso, options, type);
+  #callSso<T>(url: string, options: RequestInit, type: z.ZodType<T>): Promise<T> {
+    return Api.#call('sso', url, options, type);
   }
 }

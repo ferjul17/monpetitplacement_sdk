@@ -57,8 +57,6 @@ function defaultHandler(err: unknown) {
   logger.warn({
     action: 'login',
     username: USERNAME,
-    // profiles,
-    // user,
   });
 
   const userId = user.id;
@@ -82,48 +80,6 @@ function defaultHandler(err: unknown) {
         token,
         userInvestmentAccountId: parseInt(investmentAccount.id, 10),
       });
-      /* .then((dto) => {
-          const initialDistribution = dto.mppChoice.initialDistribution[0];
-          const monthlyDistribution = dto.mppChoice.monthlyDistribution[0];
-          logger.warn({
-            log: 'initial distribution per funds',
-            advisor: `${dto.advisor.firstname} ${dto.advisor.lastname}`,
-            mppChoice: {
-              initialAmount: dto.mppChoice.initialAmount,
-              initialDistribution: {
-                name: initialDistribution.name,
-                percent: initialDistribution.percent,
-                amount: initialDistribution.amount,
-                funds: initialDistribution.funds.map((fund) => {
-                  return {
-                    amount: fund.amount,
-                    isin: fund.isin,
-                    name: fund.name,
-                    percent: fund.percent,
-                    slug: fund.slug,
-                  };
-                }),
-              },
-              monthlyAmount: monthlyDistribution.amount,
-              monthlyDistribution: {
-                name: monthlyDistribution.name,
-                percent: monthlyDistribution.percent,
-                amount: monthlyDistribution.amount,
-                funds: initialDistribution.funds.map((fund) => {
-                  return {
-                    amount: fund.amount,
-                    isin: fund.isin,
-                    name: fund.name,
-                    percent: fund.percent,
-                    slug: fund.slug,
-                  };
-                }),
-              },
-            },
-          });
-
-          return dto;
-        }); */
     })
   );
 

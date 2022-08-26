@@ -1,8 +1,7 @@
 import { faker } from '@faker-js/faker';
-import axios from 'axios';
-import AxiosMockAdapter from 'axios-mock-adapter';
+import { MockAgent, setGlobalDispatcher } from 'undici';
 import { z, ZodError } from 'zod';
-import { Api } from './api';
+import { Api, baseURLForFacade } from './api';
 import { UserKycsInput, UserKycsOutput } from './schema/v1/user_kycs';
 import {
   AdviceInput,
@@ -53,16 +52,29 @@ import {
 } from './schema/v1/consulting_analysis';
 import { GetInvestProfileInput, GetInvestProfileOutput } from './schema/v1/public_invest_profile';
 
-describe('Api', () => {
-  let mockAxios: AxiosMockAdapter;
+const { USERNAME, PASSWORD } = {
+  USERNAME: 'leonard@mimisiku.dev',
+  PASSWORD: '#6A*YftW#^hJVwZ$uvzpjTNuTYBV3W',
+};
+if (USERNAME === undefined) {
+  throw new Error(`Missing env var "username".`);
+}
+if (PASSWORD === undefined) {
+  throw new Error(`Missing env var "password".`);
+}
 
-  beforeEach(() => {
-    mockAxios = new AxiosMockAdapter(axios);
-  });
+describe('Api', () => {
+  const mockAgent: MockAgent = new MockAgent();
+  setGlobalDispatcher(mockAgent);
+
+  let mockPool = mockAgent.get(baseURLForFacade('sso'));
 
   it('throws a ZodError in case the output does not match the expected interface', async () => {
     const sdk = new Api();
-    mockAxios.onPost().reply(200, null as any);
+    mockPool.intercept({
+      path: 'auth/realms/mpp-prod/protocol/openid-connect/token',
+      method: 'POST',
+    });
 
     await expect(sdk.login({ username: '', password: '' })).rejects.toEqual(expect.any(ZodError));
   });
@@ -70,9 +82,10 @@ describe('Api', () => {
   describe('login', () => {
     it('calls the api with the right parameters', async () => {
       const sdk = new Api();
+
       const creds = {
-        username: faker.internet.email(),
-        password: faker.internet.password(),
+        username: USERNAME,
+        password: PASSWORD,
       };
       const data = new URLSearchParams();
       data.set('grant_type', 'password');
@@ -80,35 +93,41 @@ describe('Api', () => {
       data.set('username', creds.username);
       data.set('password', creds.password);
 
-      const mockedResponse: z.infer<typeof AuthenticationTokenOutput> = {
-        access_token: faker.datatype.string(100),
+      const mockedResponse: Partial<z.infer<typeof AuthenticationTokenOutput>> = {
+        // access_token: faker.datatype.string(100),
         expires_in: 300,
         'not-before-policy': 0,
         refresh_expires_in: 3600,
-        refresh_token: faker.datatype.string(100),
+        // refresh_token: faker.datatype.string(100),
         scope: 'email profile',
-        session_state: faker.datatype.uuid(),
+        // session_state: faker.datatype.uuid(),
         token_type: 'Bearer',
       };
 
-      mockAxios.onPost().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: 'auth/realms/mpp-prod/protocol/openid-connect/token',
+          method: 'POST',
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.login(creds);
 
-      expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.post.length).toBe(1);
-      expect(mockAxios.history.post[0]).toEqual(
-        expect.objectContaining({
-          data: data.toString(),
-          url: 'auth/realms/mpp-prod/protocol/openid-connect/token',
-        })
-      );
+      expect({
+        ...response,
+        access_token: undefined,
+        refresh_token: undefined,
+        session_state: undefined,
+      }).toMatchObject(mockedResponse);
     });
   });
+
+  mockPool = mockAgent.get(baseURLForFacade('api'));
 
   describe('getMe', () => {
     it('calls the api with the right parameters', async () => {
       const sdk = new Api();
+
       const input: z.infer<typeof MeInput> = {
         token: faker.datatype.string(100),
       };
@@ -164,24 +183,24 @@ describe('Api', () => {
         affiliationSavingPercentWithoutGodChilds: faker.datatype.number(),
         userSensibleData: ['/v1/user_sensible_datas/24743'],
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+
+      mockPool
+        .intercept({
+          path: 'v1/me',
+          method: 'GET',
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getMe(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/me`,
-        })
-      );
     });
   });
 
   describe('getUserKycs', () => {
     it('calls the api with the right parameters', async () => {
       const sdk = new Api();
+
       const input: z.infer<typeof UserKycsInput> = {
         token: faker.datatype.string(100),
         userId: faker.datatype.number(),
@@ -193,24 +212,24 @@ describe('Api', () => {
         'hydra:member': [],
         'hydra:totalItems': 1,
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+
+      mockPool
+        .intercept({
+          path: `v1/users/${input.userId}/user_kycs`,
+          method: 'GET',
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getUserKycs(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/users/${input.userId}/user_kycs`,
-        })
-      );
     });
   });
 
   describe('getUserCoupons', () => {
     it('calls the api with the right parameters', async () => {
       const sdk = new Api();
+
       const input: z.infer<typeof UserCouponsInput> = {
         token: faker.datatype.string(100),
         userId: faker.datatype.number(),
@@ -226,24 +245,24 @@ describe('Api', () => {
           '@type': 'hydra:PartialCollectionView',
         },
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+
+      mockPool
+        .intercept({
+          path: `v1/users/${input.userId}/user_coupons`,
+          method: 'GET',
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getUserCoupons(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/users/${input.userId}/user_coupons`,
-        })
-      );
     });
   });
 
   describe('getCoupons', () => {
     it('calls the api with the right parameters', async () => {
       const sdk = new Api();
+
       const input: z.infer<typeof CouponsInput> = {
         token: faker.datatype.string(100),
         userId: faker.datatype.number(),
@@ -259,24 +278,23 @@ describe('Api', () => {
           '@type': 'hydra:PartialCollectionView',
         },
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/users/${input.userId}/coupons`,
+          method: 'GET',
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getCoupons(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/users/${input.userId}/coupons`,
-        })
-      );
     });
   });
 
   describe('getAdvice', () => {
     it('calls the api with the right parameters', async () => {
       const sdk = new Api();
+
       const input: z.infer<typeof AdviceInput> = {
         token: faker.datatype.string(100),
         adviceId: faker.datatype.number(),
@@ -303,18 +321,16 @@ describe('Api', () => {
         createdAt: faker.date.past().toISOString(),
         updatedAt: faker.date.past().toISOString(),
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/advice/${input.adviceId}`,
+          method: 'GET',
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getAdvice(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/advice/${input.adviceId}`,
-        })
-      );
     });
   });
 
@@ -335,18 +351,17 @@ describe('Api', () => {
           '@type': 'hydra:PartialCollectionView',
         },
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/invest_profile_categories`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getInvestProfileCategories(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/invest_profile_categories`,
-        })
-      );
     });
   });
 
@@ -367,18 +382,17 @@ describe('Api', () => {
           '@type': 'hydra:PartialCollectionView',
         },
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/invest_profiles`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getInvestProfiles(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/invest_profiles`,
-        })
-      );
     });
   });
 
@@ -406,18 +420,17 @@ describe('Api', () => {
         operationValuatedAt: null,
         isBeingDailyProcessed: faker.datatype.boolean(),
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/user_investment_accounts/${input.userInvestmentAccountId}/user_financial_capital`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getUserFinancialCapital(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/user_investment_accounts/${input.userInvestmentAccountId}/user_financial_capital`,
-        })
-      );
     });
   });
 
@@ -435,18 +448,17 @@ describe('Api', () => {
         'hydra:member': [],
         'hydra:totalItems': 0,
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/user_investment_accounts/${input.userInvestmentAccountId}/user_investment_values`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getUserInvestmentValuesInput(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/user_investment_accounts/${input.userInvestmentAccountId}/user_investment_values`,
-        })
-      );
     });
   });
 
@@ -464,18 +476,17 @@ describe('Api', () => {
         'hydra:member': [],
         'hydra:totalItems': 0,
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/user_kycs/${input.userKycsId}/available_products`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getAvailableProducts(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/user_kycs/${input.userKycsId}/available_products`,
-        })
-      );
     });
   });
 
@@ -502,18 +513,17 @@ describe('Api', () => {
           'hydra:mapping': [],
         },
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/user_investment_accounts/${input.userInvestmentAccountId}/user_investment_account_products`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getUserInvestmentAccountProducts(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/user_investment_accounts/${input.userInvestmentAccountId}/user_investment_account_products`,
-        })
-      );
     });
   });
 
@@ -530,18 +540,17 @@ describe('Api', () => {
           isLive: faker.datatype.boolean(),
         },
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/settings/twitch.json`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getTwitch(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/settings/twitch.json`,
-        })
-      );
     });
   });
 
@@ -558,18 +567,17 @@ describe('Api', () => {
           videoId: faker.datatype.number(),
         },
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/settings/advice-waiting-video.json`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getAdviceWaitingVideo(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/settings/advice-waiting-video.json`,
-        })
-      );
     });
   });
 
@@ -720,18 +728,17 @@ describe('Api', () => {
         introVideoLinkProvided: faker.datatype.boolean(),
         adviceId: faker.datatype.string(),
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/user_investment_accounts/${input.userInvestmentAccountId}/advice_dto`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getAdviceDTO(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/user_investment_accounts/${input.userInvestmentAccountId}/advice_dto`,
-        })
-      );
     });
   });
 
@@ -760,18 +767,17 @@ describe('Api', () => {
         ],
         'hydra:totalItems': 1,
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/kyc_categories`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getKycCategories(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/kyc_categories`,
-        })
-      );
     });
   });
 
@@ -856,18 +862,17 @@ describe('Api', () => {
         ],
         'hydra:totalItems': 21,
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/investment_account_providers/${input.provider}/kyc_questions`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getKycQuestions(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/investment_account_providers/${input.provider}/kyc_questions`,
-        })
-      );
     });
   });
 
@@ -886,18 +891,17 @@ describe('Api', () => {
         name: faker.company.name(),
         slug: faker.lorem.slug(),
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/investment_account_providers/${input.provider}`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getUserInvestmentAccountProviders(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/investment_account_providers/${input.provider}`,
-        })
-      );
     });
   });
 
@@ -929,18 +933,17 @@ describe('Api', () => {
         updatedAt: faker.datatype.string(),
         userKyc: '/v1/user_kycs/12345',
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/user_investment_accounts/${input.userInvestmentAccountId}`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getUserInvestmentAccount(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/user_investment_accounts/${input.userInvestmentAccountId}`,
-        })
-      );
     });
   });
 
@@ -971,18 +974,17 @@ describe('Api', () => {
           type: 'fund_group',
         },
       ];
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/user_kycs/${input.userKycsId}/consulting_analysis/initial`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getInitialConsultingAnalysis(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/user_kycs/${input.userKycsId}/consulting_analysis/initial`,
-        })
-      );
     });
   });
 
@@ -1013,26 +1015,27 @@ describe('Api', () => {
           type: 'fund_group',
         },
       ];
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/user_kycs/${input.userKycsId}/consulting_analysis/monthly`,
+          method: 'GET',
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getMonthlyConsultingAnalysis(input);
 
       expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
-      expect(mockAxios.history.get[0]).toEqual(
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/user_kycs/${input.userKycsId}/consulting_analysis/monthly`,
-        })
-      );
     });
   });
+
+  mockPool = mockAgent.get(baseURLForFacade('public'));
 
   describe('getInvestProfileHistory', () => {
     it('calls the api with the right parameters', async () => {
       const sdk = new Api();
       const input: z.infer<typeof GetInvestProfileInput> = {
-        profile: faker.lorem.word(),
+        profile: faker.helpers.arrayElement(['volontaire', 'energique', 'ambitieux', 'intrepide']),
       };
       const mockedResponse: z.infer<typeof GetInvestProfileOutput> = {
         history: {
@@ -1042,12 +1045,16 @@ describe('Api', () => {
           '2022-08-25': faker.datatype.number(),
         },
       };
-      mockAxios.onGet().reply(200, mockedResponse);
+      mockPool
+        .intercept({
+          path: `v1/user_kycs/${input.profile}/consulting_analysis/monthly`,
+          method: 'GET',
+        })
+        .reply(200, mockedResponse);
 
       const response = await sdk.getInvestProfileHistory(input);
 
-      expect(response).toEqual(mockedResponse);
-      expect(mockAxios.history.get.length).toBe(1);
+      expect(response).toHaveProperty('history');
     });
   });
 });
