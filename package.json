@@ -27,7 +27,7 @@
     "directory": "lib"
   },
   "publishConfig": {
-    "@m1m1s1ku:registry": "https://registry.npmjs.org"
+    "registry": "https://registry.npmjs.org"
   },
   "keywords": [],
   "author": "Julien Ferrier <npm-package-monpetitplacement_sdk@ferrier.email>",
