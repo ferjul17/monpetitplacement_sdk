@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
 import axios, { AxiosError } from 'axios';
 import 'dotenv/config';
-import { z } from 'zod';
+
 import { logger } from './src/logger';
+
 import { Api } from './src';
-import { UserKycsOutput } from './src/schema/v1/user_kycs';
 
 const { USERNAME, PASSWORD } = process.env;
 if (USERNAME === undefined) {
@@ -26,13 +26,6 @@ function handleRemoteError(err: AxiosError | Error) {
   }
 
   logger.error({ message: 'unknown error', err });
-}
-
-function parseKYCS(token: string, api: Api, kycs: z.infer<typeof UserKycsOutput>['hydra:member']) {
-  return Promise.all(
-    // advice take a kycMemberId ?
-    kycs.map((kycMember) => api.getAdvice({ token, adviceId: parseInt(kycMember.id, 10) }))
-  );
 }
 
 function defaultHandler(err: unknown) {
@@ -66,12 +59,6 @@ function defaultHandler(err: unknown) {
   // console.debug(investProfileCategories, investProfiles, userCoupons, coupons, userKycs);
   const kycs = userKycs['hydra:member'];
 
-  // Below doesn't work if no strategy in account
-  const advices = await parseKYCS(token, api, kycs).catch(defaultHandler);
-  if (advices && !advices.length) {
-    logger.warn('No advices found');
-  }
-
   if (!user.investmentAccounts) {
     logger.error({
       message: 'no investmentAccounts found',
@@ -82,48 +69,58 @@ function defaultHandler(err: unknown) {
 
   const advicesDTO = await Promise.all(
     user.investmentAccounts?.map((investmentAccount) => {
-      return api.getAdviceDTO({ token, userInvestmentAccountId: investmentAccount.id });
+      return api
+        .getAdviceDTO({ token, userInvestmentAccountId: investmentAccount.id })
+        .then((dto) => {
+          const initialDistribution = dto.mppChoice.initialDistribution[0];
+          const monthlyDistribution = dto.mppChoice.monthlyDistribution[0];
+          logger.warn({
+            log: 'initial distribution per funds',
+            advisor: `${dto.advisor.firstname} ${dto.advisor.lastname}`,
+            mppChoice: {
+              initialAmount: dto.mppChoice.initialAmount,
+              initialDistribution: {
+                name: initialDistribution.name,
+                amount: initialDistribution.amount,
+                funds: initialDistribution.funds.map((fund) => {
+                  return {
+                    amount: fund.amount,
+                    isin: fund.isin,
+                    name: fund.name,
+                    percent: fund.percent,
+                    slug: fund.slug,
+                  };
+                }),
+                monthlyAmount: monthlyDistribution.amount,
+                monthlyDistribution: {
+                  name: monthlyDistribution.name,
+                  percent: monthlyDistribution.percent,
+                  funds: initialDistribution.funds.map((fund) => {
+                    return {
+                      amount: fund.amount,
+                      isin: fund.isin,
+                      name: fund.name,
+                      percent: fund.percent,
+                      slug: fund.slug,
+                    };
+                  }),
+                },
+              },
+            },
+          });
+
+          return dto;
+        });
     })
   );
 
-  advicesDTO.forEach(function showMppChoice(dto) {
-    const initialDistribution = dto.mppChoice.initialDistribution[0];
-    const monthlyDistribution = dto.mppChoice.monthlyDistribution[0];
-    logger.warn({
-      log: 'initial distribution per funds',
-      advisor: `${dto.advisor.firstname} ${dto.advisor.lastname}`,
-      mppChoice: {
-        initialAmount: dto.mppChoice.initialAmount,
-        initialDistribution: {
-          name: initialDistribution.name,
-          amount: initialDistribution.amount,
-          funds: initialDistribution.funds.map((fund) => {
-            return {
-              amount: fund.amount,
-              isin: fund.isin,
-              name: fund.name,
-              percent: fund.percent,
-              slug: fund.slug,
-            };
-          }),
-          monthlyAmount: monthlyDistribution.amount,
-          monthlyDistribution: {
-            name: monthlyDistribution.name,
-            percent: monthlyDistribution.percent,
-            funds: initialDistribution.funds.map((fund) => {
-              return {
-                amount: fund.amount,
-                isin: fund.isin,
-                name: fund.name,
-                percent: fund.percent,
-                slug: fund.slug,
-              };
-            }),
-          },
-        },
-      },
-    });
-  });
+  // Below doesn't work if no strategy in account
+  const advices = await Promise.all(
+    kycs.map((adviceId) => api.getAdvice({ token, adviceId: parseInt(adviceId.id, 10) }))
+  );
+  if (advices && !advices.length) {
+    logger.warn('No advices found');
+  }
 
   const activeInvestmentAccounts = user.investmentAccounts.filter(
     (investmentAccount) => investmentAccount.status !== 'pending'
