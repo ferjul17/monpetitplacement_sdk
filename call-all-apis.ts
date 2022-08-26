@@ -25,7 +25,7 @@ function handleRemoteError(err: AxiosError | Error) {
     return;
   }
 
-  logger.error('unknown error', err);
+  logger.error({ message: 'unknown error', err });
 }
 
 function parseKYCS(token: string, api: Api, kycs: z.infer<typeof UserKycsOutput>['hydra:member']) {
@@ -54,6 +54,12 @@ function defaultHandler(err: unknown) {
   const { access_token: token } = await api.login({ username: USERNAME, password: PASSWORD });
   const user = await api.getMe({ token });
 
+  logger.warn({
+    action: 'login',
+    username: USERNAME,
+    user,
+  });
+
   const userId = user.id;
   const investProfileCategories = await api.getInvestProfileCategories({ token });
   const investProfiles = await api.getInvestProfiles({ token });
@@ -71,7 +77,10 @@ function defaultHandler(err: unknown) {
   }
 
   if (!user.investmentAccounts) {
-    logger.error('no investmentAccounts found', user.firstname);
+    logger.error({
+      message: 'no investmentAccounts found',
+      user,
+    });
     return;
   }
 
@@ -98,7 +107,10 @@ function defaultHandler(err: unknown) {
     return;
   }
 
-  logger.info('got these active investment accounts', activeInvestmentAccounts);
+  logger.info({
+    message: 'got these active investment accounts', 
+    activeInvestmentAccounts,
+  });
 
   // below is denied for inactive investment accounts
   const availableProducts = await Promise.all(
