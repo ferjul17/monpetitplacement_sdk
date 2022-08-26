@@ -80,13 +80,15 @@ export const MeOutput = z.object({
   viewPreference: z.string(),
   investmentAccounts: z.array(InvestmentAccount).optional(),
   userSensibleData: z.array(
-    z.object({
-      '@id': z.string(),
-      '@type': z.string(),
-      iban: z.string(),
-      swift: z.string(),
-      uuid: z.string(),
-    })
+    z.string().or(
+      z.object({
+        '@id': z.string(),
+        '@type': z.string(),
+        iban: z.string(),
+        swift: z.string(),
+        uuid: z.string(),
+      })
+    )
   ),
   registrationReason: z.object({
     '@type': z.string(),

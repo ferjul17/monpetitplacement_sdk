@@ -161,15 +161,7 @@ describe('Api', () => {
         affiliationTotalUserCount: faker.datatype.number(),
         affiliationSavingsPercent: faker.datatype.number(),
         affiliationSavingPercentWithoutGodChilds: faker.datatype.number(),
-        userSensibleData: [
-          {
-            '@id': `/v1/user_sensible_datas/${faker.datatype.number({ min: 1 })}`,
-            '@type': 'UserSensibleData',
-            iban: faker.finance.iban(),
-            swift: faker.finance.bic(),
-            uuid: faker.datatype.uuid(),
-          },
-        ],
+        userSensibleData: ['/v1/user_sensible_datas/24743'],
       };
       mockAxios.onGet().reply(200, mockedResponse);
 
