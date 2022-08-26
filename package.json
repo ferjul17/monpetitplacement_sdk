@@ -1,6 +1,6 @@
 {
   "name": "monpetitplacement-sdk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "TypeScript library for accessing the French fintech company MonPetitPlacement's services.",
   "main": "./lib/index.js",
   "exports": {
