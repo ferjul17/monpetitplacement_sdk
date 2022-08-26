@@ -47,6 +47,10 @@ import {
   UserAdviceDTOOutput,
 } from './schema/v1/user_investment_account_advice_dto';
 import { MPPTwitchInput, MPPTwitchOutput } from './schema/v1/twitch';
+import {
+  GetConsultingAnalaysisOutput,
+  GetConsultingAnalysisInput,
+} from './schema/v1/consulting_analysis';
 
 export class Api {
   readonly #axiosApi: AxiosInstance;
@@ -335,6 +339,38 @@ export class Api {
         headers: { Authorization: `Bearer ${token}` },
       },
       AvailableProductsOutput
+    );
+  }
+
+  public async getInitialConsultingAnalysis({
+    token,
+    userKycsId,
+  }: z.infer<typeof GetConsultingAnalysisInput>): Promise<
+    z.infer<typeof GetConsultingAnalaysisOutput>
+  > {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/user_kycs/${userKycsId}/consulting_analysis/initial`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      GetConsultingAnalaysisOutput
+    );
+  }
+
+  public async getMonthlyConsultingAnalysis({
+    token,
+    userKycsId,
+  }: z.infer<typeof GetConsultingAnalysisInput>): Promise<
+    z.infer<typeof GetConsultingAnalaysisOutput>
+  > {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/user_kycs/${userKycsId}/consulting_analysis/monthly`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      GetConsultingAnalaysisOutput
     );
   }
 

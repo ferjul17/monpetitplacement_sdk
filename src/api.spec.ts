@@ -47,6 +47,10 @@ import {
   UserInvestmentAccountInput,
   UserInvestmentAccountOutput,
 } from './schema/v1/user_investment_account';
+import {
+  GetConsultingAnalaysisOutput,
+  GetConsultingAnalysisInput,
+} from './schema/v1/consulting_analysis';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -939,6 +943,90 @@ describe('Api', () => {
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
           url: `v1/user_investment_accounts/${input.userInvestmentAccountId}`,
+        })
+      );
+    });
+  });
+
+  describe('getInitialConsultingAnalysis', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof GetConsultingAnalysisInput> = {
+        token: faker.datatype.string(100),
+        userKycsId: faker.datatype.number(),
+      };
+      const mockedResponse: z.infer<typeof GetConsultingAnalaysisOutput> = [
+        {
+          funds: [
+            {
+              dici: faker.datatype.string(),
+              isin: faker.datatype.string(),
+              slug: faker.lorem.slug(),
+              name: faker.company.name(),
+              percent: faker.datatype.number(100),
+              amount: faker.datatype.number(),
+              type: 'fund',
+            },
+          ],
+          slug: faker.lorem.slug(),
+          name: faker.datatype.string(),
+          percent: faker.datatype.number(100),
+          amount: faker.datatype.number(),
+          type: 'fund_group',
+        },
+      ];
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getInitialConsultingAnalysis(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/user_kycs/${input.userKycsId}/consulting_analysis/initial`,
+        })
+      );
+    });
+  });
+
+  describe('getMonthlyConsultingAnalysis', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof GetConsultingAnalysisInput> = {
+        token: faker.datatype.string(100),
+        userKycsId: faker.datatype.number(),
+      };
+      const mockedResponse: z.infer<typeof GetConsultingAnalaysisOutput> = [
+        {
+          funds: [
+            {
+              dici: faker.datatype.string(),
+              isin: faker.datatype.string(),
+              slug: faker.lorem.slug(),
+              name: faker.company.name(),
+              percent: faker.datatype.number(100),
+              amount: faker.datatype.number(),
+              type: 'fund',
+            },
+          ],
+          slug: faker.lorem.slug(),
+          name: faker.datatype.string(),
+          percent: faker.datatype.number(100),
+          amount: faker.datatype.number(),
+          type: 'fund_group',
+        },
+      ];
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getMonthlyConsultingAnalysis(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/user_kycs/${input.userKycsId}/consulting_analysis/monthly`,
         })
       );
     });
