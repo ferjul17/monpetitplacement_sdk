@@ -504,7 +504,7 @@ export class Api {
       ...options,
       body: options.body instanceof URLSearchParams ? options.body : stringBody,
     });
-    const body = (await res.json()) as T | { error: string; error_description: string };
+    const body = (await res.json()) as T | z.ZodIntersection<typeof MPPError, typeof TokenError>;
 
     try {
       const output = await type.parseAsync(body);
