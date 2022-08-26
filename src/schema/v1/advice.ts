@@ -27,3 +27,15 @@ export const AdviceOutput = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
 });
+
+export const AdviceWaitingVideoInput = z.object({
+  token: z.string(),
+});
+
+export const AdviceWaitingVideoOutput = z.object({
+  key: z.string(),
+  readable: z.boolean(),
+  value: z.object({
+    videoId: z.number(),
+  }),
+});

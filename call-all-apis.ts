@@ -1,8 +1,10 @@
 /* eslint-disable no-console */
 import axios, { AxiosError } from 'axios';
 import 'dotenv/config';
+import { z } from 'zod';
 import { logger } from './src/logger';
 import { Api } from './src';
+import { UserKycsOutput } from './src/schema/v1/user_kycs';
 
 const { USERNAME, PASSWORD } = process.env;
 if (USERNAME === undefined) {
@@ -26,23 +28,12 @@ function handleRemoteError(err: AxiosError | Error) {
   logger.error('unknown error', err);
 }
 
-async function parseKYCS(
-  token: string,
-  api: Api,
-  kycs: Awaited<ReturnType<Api['getUserKycs']>>['hydra:member']
-) {
-  const advicePromises = [];
-  for (let index = 0, l = kycs.length; index < l; index += 1) {
-    const advice = kycs[index];
-    if (!advice) {
-      // eslint-disable-next-line no-continue
-      continue;
-    }
-
-    advicePromises.push(api.getAdvice({ token, adviceId: parseInt(advice.id, 10) }));
-  }
-
-  return Promise.all(advicePromises);
+function parseKYCS(token: string, api: Api, kycs: z.infer<typeof UserKycsOutput>['hydra:member']) {
+  console.warn(kycs);
+  return Promise.all(
+    // advice take a kycMemberId ?
+    kycs.map((kycMember) => api.getAdvice({ token, adviceId: parseInt(kycMember.id, 10) }))
+  );
 }
 
 function defaultHandler(err: unknown) {

@@ -1,8 +1,16 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { z } from 'zod';
+
+import { logger } from './logger';
+
 import { AuthenticationTokenInput, AuthenticationTokenOutput } from './schema/authentication-token';
 import { UserKycsInput, UserKycsOutput } from './schema/v1/user_kycs';
-import { AdviceInput, AdviceOutput } from './schema/v1/advice';
+import {
+  AdviceInput,
+  AdviceOutput,
+  AdviceWaitingVideoInput,
+  AdviceWaitingVideoOutput,
+} from './schema/v1/advice';
 import {
   InvestProfileCategoriesInput,
   InvestProfileCategoriesOutput,
@@ -24,7 +32,21 @@ import {
   UserInvestmentValuesOutput,
 } from './schema/v1/user_investment_values';
 import { MeInput, MeOutput } from './schema/v1/me';
-import { logger } from './logger';
+import {
+  UserInvestmentAccountProvidersInput,
+  UserInvestmentAccountProvidersOutput,
+} from './schema/v1/user_investment_account_providers';
+import {
+  UserInvestmentAccountInput,
+  UserInvestmentAccountOutput,
+} from './schema/v1/user_investment_account';
+import { UserKycCategoryInput, UserKycCategoryOutput } from './schema/v1/user_kyc_categories';
+import { UserKycQuestionsInput, UserKycQuestionsOutput } from './schema/v1/user_kyc_questions';
+import {
+  UserAdviceDTOInput,
+  UserAdviceDTOOutput,
+} from './schema/v1/user_investment_account_advice_dto';
+import { MPPTwitchInput, MPPTwitchOutput } from './schema/v1/twitch';
 
 export class Api {
   readonly #axiosApi: AxiosInstance;
@@ -71,6 +93,32 @@ export class Api {
     );
   }
 
+  public async getTwitch({
+    token,
+  }: z.infer<typeof MPPTwitchInput>): Promise<z.infer<typeof MPPTwitchOutput>> {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/settings/twitch.json`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      MPPTwitchOutput
+    );
+  }
+
+  public async getAdviceWaitingVideo({
+    token,
+  }: z.infer<typeof AdviceWaitingVideoInput>): Promise<z.infer<typeof AdviceWaitingVideoOutput>> {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/settings/advice-waiting-video.json`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      AdviceWaitingVideoOutput
+    );
+  }
+
   public async getUserKycs({
     token,
     userId,
@@ -82,6 +130,47 @@ export class Api {
         headers: { Authorization: `Bearer ${token}` },
       },
       UserKycsOutput
+    );
+  }
+
+  public async getAdviceDTO({
+    token,
+    userInvestmentAccountId,
+  }: z.infer<typeof UserAdviceDTOInput>): Promise<z.infer<typeof UserAdviceDTOOutput>> {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/user_investment_accounts/${userInvestmentAccountId}/advice_dto`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      UserAdviceDTOOutput
+    );
+  }
+
+  public async getKycQuestions({
+    token,
+    provider,
+  }: z.infer<typeof UserKycQuestionsInput>): Promise<z.infer<typeof UserKycQuestionsOutput>> {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/investment_account_providers/${provider}/kyc_questions`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      UserKycQuestionsOutput
+    );
+  }
+
+  public async getKycCategories({
+    token,
+  }: z.infer<typeof UserKycCategoryInput>): Promise<z.infer<typeof UserKycCategoryOutput>> {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/kyc_categories`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      UserKycCategoryOutput
     );
   }
 
@@ -184,6 +273,38 @@ export class Api {
         headers: { Authorization: `Bearer ${token}` },
       },
       UserInvestmentValuesOutput
+    );
+  }
+
+  public async getUserInvestmentAccountProviders({
+    token,
+    provider,
+  }: z.infer<typeof UserInvestmentAccountProvidersInput>): Promise<
+    z.infer<typeof UserInvestmentAccountProvidersOutput>
+  > {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/investment_account_providers/${provider}`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      UserInvestmentAccountProvidersOutput
+    );
+  }
+
+  public async getUserInvestmentAccount({
+    token,
+    investmentAccountId,
+  }: z.infer<typeof UserInvestmentAccountInput>): Promise<
+    z.infer<typeof UserInvestmentAccountOutput>
+  > {
+    return this.#callApi(
+      {
+        method: 'GET',
+        url: `v1/user_investment_accounts/${investmentAccountId}`,
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      UserInvestmentAccountOutput
     );
   }
 
