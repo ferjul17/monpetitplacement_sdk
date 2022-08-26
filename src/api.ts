@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { Headers, fetch, RequestInit, MockClient } from 'undici';
+import { Headers, fetch, RequestInit } from 'undici';
 import { z } from 'zod';
 
 import { AuthenticationTokenInput, AuthenticationTokenOutput } from './schema/authentication-token';
