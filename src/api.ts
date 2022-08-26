@@ -51,20 +51,29 @@ import {
   GetConsultingAnalaysisOutput,
   GetConsultingAnalysisInput,
 } from './schema/v1/consulting_analysis';
+import { GetInvestProfileInput, GetInvestProfileOutput } from './schema/v1/public_invest_profile';
 
 export class Api {
   readonly #axiosApi: AxiosInstance;
 
   readonly #axiosSso: AxiosInstance;
 
+  readonly #axiosPublic: AxiosInstance;
+
   public constructor(
-    { apiBaseUrl, ssoBaseUrl }: { apiBaseUrl: string; ssoBaseUrl: string } = {
+    {
+      apiBaseUrl,
+      ssoBaseUrl,
+      publicBaseUrl,
+    }: { apiBaseUrl: string; ssoBaseUrl: string; publicBaseUrl: string } = {
       apiBaseUrl: 'https://api.monpetitplacement.fr/',
       ssoBaseUrl: 'https://sso.monpetitplacement.fr/',
+      publicBaseUrl: 'https://www.monpetitplacement.fr/',
     }
   ) {
     this.#axiosApi = axios.create({ baseURL: apiBaseUrl });
     this.#axiosSso = axios.create({ baseURL: ssoBaseUrl });
+    this.#axiosPublic = axios.create({ baseURL: publicBaseUrl });
   }
 
   public async login({
@@ -342,6 +351,18 @@ export class Api {
     );
   }
 
+  public async getInvestProfileHistory({
+    profile,
+  }: z.infer<typeof GetInvestProfileInput>): Promise<z.infer<typeof GetInvestProfileOutput>> {
+    return this.#callPublicApi(
+      {
+        method: 'GET',
+        url: `/invest-profile/history/${profile}`,
+      },
+      GetInvestProfileOutput
+    );
+  }
+
   public async getInitialConsultingAnalysis({
     token,
     userKycsId,
@@ -400,6 +421,10 @@ export class Api {
     } catch (err) {
       return Promise.reject(err);
     }
+  }
+
+  #callPublicApi<T>(options: AxiosRequestConfig, type: z.ZodType<T>): Promise<T> {
+    return Api.#call(this.#axiosPublic, options, type);
   }
 
   #callApi<T>(options: AxiosRequestConfig, type: z.ZodType<T>): Promise<T> {

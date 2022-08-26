@@ -51,6 +51,7 @@ import {
   GetConsultingAnalaysisOutput,
   GetConsultingAnalysisInput,
 } from './schema/v1/consulting_analysis';
+import { GetInvestProfileInput, GetInvestProfileOutput } from './schema/v1/public_invest_profile';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -1021,6 +1022,29 @@ describe('Api', () => {
           url: `v1/user_kycs/${input.userKycsId}/consulting_analysis/monthly`,
         })
       );
+    });
+  });
+
+  describe('getInvestProfileHistory', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof GetInvestProfileInput> = {
+        profile: faker.lorem.word(),
+      };
+      const mockedResponse: z.infer<typeof GetInvestProfileOutput> = {
+        history: {
+          '2015-08-07': faker.datatype.number(),
+          '2015-08-08': faker.datatype.number(),
+          // ...
+          '2022-08-25': faker.datatype.number(),
+        },
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getInvestProfileHistory(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
     });
   });
 });
