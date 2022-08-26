@@ -108,7 +108,7 @@ function defaultHandler(err: unknown) {
   }
 
   logger.info({
-    message: 'got these active investment accounts', 
+    message: 'got these active investment accounts',
     activeInvestmentAccounts,
   });
 
