@@ -121,7 +121,7 @@ describe('Api', () => {
         firstname: faker.name.firstName(),
         lastname: faker.name.lastName(),
         gender: faker.helpers.arrayElement(['man', 'woman']),
-        phone: faker.phone.phoneNumber(),
+        phone: faker.phone.number(),
         cgvAccepted: faker.datatype.boolean(),
         validatedAt: faker.date.past().toISOString(),
         birthdate: faker.date.past().toISOString(),
