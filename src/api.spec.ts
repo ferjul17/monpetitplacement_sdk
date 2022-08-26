@@ -499,4 +499,13 @@ describe('Api', () => {
       );
     });
   });
+
+  // TODO XXX: add tests for
+  // - getTwitch (or no?)
+  // - getAdviceWaitingVideo (or no?)
+  // - getAdviceDTO
+  // - getKycQuestions
+  // - getKycCategories
+  // - getUserInvestmentAccountProviders
+  // - getUserInvestmentAccount
 });
