@@ -943,7 +943,4 @@ describe('Api', () => {
       );
     });
   });
-
-  // TODO XXX: add tests for
-  // - getUserInvestmentAccount
 });
