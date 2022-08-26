@@ -1,5 +1,5 @@
 {
-  "name": "mon-petit-placement",
+  "name": "mpp-sdk",
   "version": "1.0.0",
   "description": "TypeScript library for accessing the French fintech company MonPetitPlacement's services.",
   "main": "./lib/index.js",
