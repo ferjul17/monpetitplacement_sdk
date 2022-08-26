@@ -1,27 +1,37 @@
 /* eslint-disable no-console */
 import prompt from 'prompt';
 import 'dotenv/config';
-import { ZodError } from 'zod';
 
 import { logger } from './src/logger';
 
 import { Api } from './src';
-import { RemoteError } from './src/api';
 import { isExternalError } from './src/errors';
 
-const { USERNAME, PASSWORD } = process.env;
-if (USERNAME === undefined) {
-  throw new Error(`Missing en var "username".`);
-}
-if (PASSWORD === undefined) {
-  throw new Error(`Missing en var "password".`);
-}
+async function retrieveCreds() {
+  let { USERNAME, PASSWORD } = process.env;
+  if (USERNAME === undefined) {
+    const response = await prompt.get(['username']);
+    USERNAME = response.username as string;
+    if (USERNAME) {
+      throw new Error(`Missing env var "username".`);
+    }
+  }
+  if (PASSWORD === undefined) {
+    const response = await prompt.get(['password']);
+    PASSWORD = response.password as string;
+    if (!PASSWORD) {
+      throw new Error(`Missing env var "password".`);
+    }
+  }
 
-function defaultHandler(err: RemoteError | ZodError) {
-  logger.fatal(err);
+  return {
+    USERNAME,
+    PASSWORD,
+  };
 }
 
 (async () => {
+  const { USERNAME, PASSWORD } = await retrieveCreds();
   const api = new Api();
 
   const res = await api.login({ username: USERNAME, password: PASSWORD });
@@ -146,14 +156,13 @@ function defaultHandler(err: RemoteError | ZodError) {
 
   logger.warn('Are you still waiting for a strategy ?');
   prompt.start();
-  prompt.get(['strategyComplete'], async function onAnswer(err, result) {
-    if (result.strategyComplete !== 'y') {
-      return;
-    }
+  const response = await prompt.get(['strategyComplete']);
+  if (response.strategyComplete !== 'y') {
+    return;
+  }
 
-    await allActivatedEndpoints();
-  });
+  await allActivatedEndpoints();
 })().catch((e) => {
-  defaultHandler(e);
+  logger.fatal(e);
   process.exit(-1);
 });
