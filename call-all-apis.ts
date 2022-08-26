@@ -5,7 +5,7 @@ import 'dotenv/config';
 import { logger } from './logger';
 
 import { Api } from './src';
-import { isExternalError } from './src/errors';
+import { isExternalError, isGatewayError } from './src/errors';
 
 async function retrieveCreds() {
   let { USERNAME, PASSWORD } = process.env;
@@ -40,6 +40,11 @@ async function retrieveCreds() {
     return;
   }
 
+  if (isGatewayError(res)) {
+    logger.fatal('gateway error', res);
+    return;
+  }
+
   const token = res.access_token;
 
   const user = await api.getMe({ token });
@@ -62,6 +67,10 @@ async function retrieveCreds() {
     action: 'login',
     username: USERNAME,
   });
+  if (isGatewayError(user)) {
+    logger.fatal('getUser error', user);
+    return;
+  }
 
   const userId = user.id;
   const investProfileCategories = await api.getInvestProfileCategories({ token });
@@ -72,6 +81,11 @@ async function retrieveCreds() {
 
   if (isExternalError(userKycs)) {
     logger.fatal('getUserKycs error', userKycs);
+    return;
+  }
+
+  if (isGatewayError(userKycs)) {
+    logger.fatal('gateway error', res);
     return;
   }
 

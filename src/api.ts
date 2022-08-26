@@ -83,7 +83,7 @@ export class Api {
     username,
     password,
   }: z.infer<typeof AuthenticationTokenInput>): Promise<
-    z.infer<typeof AuthenticationTokenOutput> | RemoteError
+    z.infer<typeof AuthenticationTokenOutput> | RemoteError | string
   > {
     const data = new URLSearchParams();
     data.set('grant_type', 'password');
@@ -103,7 +103,7 @@ export class Api {
 
   public async getMe({
     token,
-  }: z.infer<typeof MeInput>): Promise<z.infer<typeof MeOutput> | RemoteError> {
+  }: z.infer<typeof MeInput>): Promise<z.infer<typeof MeOutput> | RemoteError | string> {
     return this.#callApi(
       `v1/me`,
       {
@@ -119,7 +119,9 @@ export class Api {
 
   public async getTwitch({
     token,
-  }: z.infer<typeof MPPTwitchInput>): Promise<z.infer<typeof MPPTwitchOutput> | RemoteError> {
+  }: z.infer<typeof MPPTwitchInput>): Promise<
+    z.infer<typeof MPPTwitchOutput> | RemoteError | string
+  > {
     return this.#callApi(
       `v1/settings/twitch.json`,
       {
@@ -136,7 +138,7 @@ export class Api {
   public async getAdviceWaitingVideo({
     token,
   }: z.infer<typeof AdviceWaitingVideoInput>): Promise<
-    z.infer<typeof AdviceWaitingVideoOutput> | RemoteError
+    z.infer<typeof AdviceWaitingVideoOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/settings/advice-waiting-video.json`,
@@ -154,7 +156,9 @@ export class Api {
   public async getUserKycs({
     token,
     userId,
-  }: z.infer<typeof UserKycsInput>): Promise<z.infer<typeof UserKycsOutput> | RemoteError> {
+  }: z.infer<typeof UserKycsInput>): Promise<
+    z.infer<typeof UserKycsOutput> | RemoteError | string
+  > {
     return this.#callApi(
       `v1/users/${userId}/user_kycs`,
       {
@@ -172,7 +176,7 @@ export class Api {
     token,
     userInvestmentAccountId,
   }: z.infer<typeof UserAdviceDTOInput>): Promise<
-    z.infer<typeof UserAdviceDTOOutput> | RemoteError
+    z.infer<typeof UserAdviceDTOOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/user_investment_accounts/${userInvestmentAccountId}/advice_dto`,
@@ -191,7 +195,7 @@ export class Api {
     token,
     provider,
   }: z.infer<typeof UserKycQuestionsInput>): Promise<
-    z.infer<typeof UserKycQuestionsOutput> | RemoteError
+    z.infer<typeof UserKycQuestionsOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/investment_account_providers/${provider}/kyc_questions`,
@@ -209,7 +213,7 @@ export class Api {
   public async getKycCategories({
     token,
   }: z.infer<typeof UserKycCategoryInput>): Promise<
-    z.infer<typeof UserKycCategoryOutput> | RemoteError
+    z.infer<typeof UserKycCategoryOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/kyc_categories`,
@@ -227,7 +231,9 @@ export class Api {
   public async getUserCoupons({
     token,
     userId,
-  }: z.infer<typeof UserCouponsInput>): Promise<z.infer<typeof UserCouponsOutput> | RemoteError> {
+  }: z.infer<typeof UserCouponsInput>): Promise<
+    z.infer<typeof UserCouponsOutput> | RemoteError | string
+  > {
     return this.#callApi(
       `v1/users/${userId}/user_coupons`,
       {
@@ -244,7 +250,7 @@ export class Api {
   public async getCoupons({
     token,
     userId,
-  }: z.infer<typeof CouponsInput>): Promise<z.infer<typeof CouponsOutput> | RemoteError> {
+  }: z.infer<typeof CouponsInput>): Promise<z.infer<typeof CouponsOutput> | RemoteError | string> {
     return this.#callApi(
       `v1/users/${userId}/coupons`,
       {
@@ -261,7 +267,7 @@ export class Api {
   public async getAdvice({
     token,
     adviceId,
-  }: z.infer<typeof AdviceInput>): Promise<z.infer<typeof AdviceOutput> | RemoteError> {
+  }: z.infer<typeof AdviceInput>): Promise<z.infer<typeof AdviceOutput> | RemoteError | string> {
     return this.#callApi(
       `v1/advice/${adviceId}`,
       {
@@ -278,7 +284,7 @@ export class Api {
   public async getInvestProfileCategories({
     token,
   }: z.infer<typeof InvestProfileCategoriesInput>): Promise<
-    z.infer<typeof InvestProfileCategoriesOutput> | RemoteError
+    z.infer<typeof InvestProfileCategoriesOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/invest_profile_categories`,
@@ -296,7 +302,7 @@ export class Api {
   public async getInvestProfiles({
     token,
   }: z.infer<typeof InvestProfilesInput>): Promise<
-    z.infer<typeof InvestProfilesOutput> | RemoteError
+    z.infer<typeof InvestProfilesOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/invest_profiles`,
@@ -315,7 +321,7 @@ export class Api {
     token,
     userInvestmentAccountId,
   }: z.infer<typeof UserFinancialCapitalInput>): Promise<
-    z.infer<typeof UserFinancialCapitalOutput> | RemoteError
+    z.infer<typeof UserFinancialCapitalOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/user_investment_accounts/${userInvestmentAccountId}/user_financial_capital`,
@@ -334,7 +340,7 @@ export class Api {
     token,
     userInvestmentAccountId,
   }: z.infer<typeof UserInvestmentValuesInput>): Promise<
-    z.infer<typeof UserInvestmentValuesOutput> | RemoteError
+    z.infer<typeof UserInvestmentValuesOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/user_investment_accounts/${userInvestmentAccountId}/user_investment_values`,
@@ -353,7 +359,7 @@ export class Api {
     token,
     provider,
   }: z.infer<typeof UserInvestmentAccountProvidersInput>): Promise<
-    z.infer<typeof UserInvestmentAccountProvidersOutput> | RemoteError
+    z.infer<typeof UserInvestmentAccountProvidersOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/investment_account_providers/${provider}`,
@@ -372,7 +378,7 @@ export class Api {
     token,
     userInvestmentAccountId,
   }: z.infer<typeof UserInvestmentAccountInput>): Promise<
-    z.infer<typeof UserInvestmentAccountOutput> | RemoteError
+    z.infer<typeof UserInvestmentAccountOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/user_investment_accounts/${userInvestmentAccountId}`,
@@ -391,7 +397,7 @@ export class Api {
     token,
     userInvestmentAccountId,
   }: z.infer<typeof UserInvestmentAccountProductsInput>): Promise<
-    z.infer<typeof UserInvestmentAccountProductsOutput> | RemoteError
+    z.infer<typeof UserInvestmentAccountProductsOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/user_investment_accounts/${userInvestmentAccountId}/user_investment_account_products`,
@@ -410,7 +416,7 @@ export class Api {
     token,
     userKycsId,
   }: z.infer<typeof AvailableProductsInput>): Promise<
-    z.infer<typeof AvailableProductsOutput> | RemoteError
+    z.infer<typeof AvailableProductsOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/user_kycs/${userKycsId}/available_products`,
@@ -428,7 +434,7 @@ export class Api {
   public async getInvestProfileHistory({
     profile,
   }: z.infer<typeof GetInvestProfileInput>): Promise<
-    z.infer<typeof GetInvestProfileOutput> | RemoteError
+    z.infer<typeof GetInvestProfileOutput> | RemoteError | string
   > {
     return this.#callPublicApi(
       `invest-profile/history/${profile}`,
@@ -458,7 +464,7 @@ export class Api {
     token,
     userKycsId,
   }: z.infer<typeof GetConsultingAnalysisInput>): Promise<
-    z.infer<typeof GetConsultingAnalaysisOutput> | RemoteError
+    z.infer<typeof GetConsultingAnalaysisOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/user_kycs/${userKycsId}/consulting_analysis/initial`,
@@ -477,7 +483,7 @@ export class Api {
     token,
     userKycsId,
   }: z.infer<typeof GetConsultingAnalysisInput>): Promise<
-    z.infer<typeof GetConsultingAnalaysisOutput> | RemoteError
+    z.infer<typeof GetConsultingAnalaysisOutput> | RemoteError | string
   > {
     return this.#callApi(
       `v1/user_kycs/${userKycsId}/consulting_analysis/monthly`,
@@ -497,21 +503,26 @@ export class Api {
     path: string,
     options: RequestInit,
     type: z.ZodType<T>
-  ): Promise<T | RemoteError> {
+  ): Promise<T | RemoteError | string> {
     const stringBody = JSON.stringify(options.body);
     const endpoint = baseURLForFacade(facade)!.concat(path);
     const res = await fetch(endpoint, {
       ...options,
       body: options.body instanceof URLSearchParams ? options.body : stringBody,
     });
-    const body = (await res.json()) as T | z.ZodIntersection<typeof MPPError, typeof TokenError>;
-
+    const clonedRes = res.clone();
     try {
-      const output = await type.parseAsync(body);
-      return output;
+      const body = (await res.json()) as T | z.ZodIntersection<typeof MPPError, typeof TokenError>;
+      try {
+        const output = await type.parseAsync(body);
+        return output;
+      } catch (err) {
+        const errorOutput = MPPError.or(TokenError);
+        return errorOutput.parseAsync(body);
+      }
     } catch (err) {
-      const errorOutput = MPPError.or(TokenError);
-      return errorOutput.parseAsync(body);
+      const text = await clonedRes.text();
+      return text;
     }
   }
 
@@ -519,15 +530,23 @@ export class Api {
     url: string,
     options: RequestInit,
     type: z.ZodType<T>
-  ): Promise<T | RemoteError> {
+  ): Promise<T | RemoteError | string> {
     return Api.#call('public', url, options, type);
   }
 
-  #callApi<T>(url: string, options: RequestInit, type: z.ZodType<T>): Promise<T | RemoteError> {
+  #callApi<T>(
+    url: string,
+    options: RequestInit,
+    type: z.ZodType<T>
+  ): Promise<T | RemoteError | string> {
     return Api.#call('api', url, options, type);
   }
 
-  #callSso<T>(url: string, options: RequestInit, type: z.ZodType<T>): Promise<T | RemoteError> {
+  #callSso<T>(
+    url: string,
+    options: RequestInit,
+    type: z.ZodType<T>
+  ): Promise<T | RemoteError | string> {
     return Api.#call('sso', url, options, type);
   }
 }

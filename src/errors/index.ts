@@ -16,3 +16,7 @@ function isTokenError(err: unknown): err is z.infer<typeof TokenError> {
 export function isExternalError(err: unknown): err is RemoteError {
   return isMPPError(err) || isTokenError(err);
 }
+
+export function isGatewayError(err: unknown): err is string {
+  return typeof err === 'string';
+}
