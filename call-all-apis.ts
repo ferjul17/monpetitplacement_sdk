@@ -29,7 +29,6 @@ function handleRemoteError(err: AxiosError | Error) {
 }
 
 function parseKYCS(token: string, api: Api, kycs: z.infer<typeof UserKycsOutput>['hydra:member']) {
-  console.warn(kycs);
   return Promise.all(
     // advice take a kycMemberId ?
     kycs.map((kycMember) => api.getAdvice({ token, adviceId: parseInt(kycMember.id, 10) }))
@@ -75,6 +74,17 @@ function defaultHandler(err: unknown) {
     logger.error('no investmentAccounts found', user.firstname);
     return;
   }
+
+  const advicesDTO = await Promise.all(
+    user.investmentAccounts?.map((investmentAccount) => {
+      return api.getAdviceDTO({ token, userInvestmentAccountId: investmentAccount.id });
+    })
+  );
+
+  logger.warn({
+    action: 'advicesDTOPerInvestmentAccount',
+    ...advicesDTO,
+  });
 
   const activeInvestmentAccounts = user.investmentAccounts.filter(
     (investmentAccount) => investmentAccount.status !== 'pending'
@@ -123,6 +133,7 @@ function defaultHandler(err: unknown) {
     coupons,
     userKycs,
     availableProducts,
+    advicesDTO,
     advices,
     userFinancialCapitals,
     userInvestmentValuesInput,
