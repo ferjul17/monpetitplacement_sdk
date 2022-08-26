@@ -24,6 +24,7 @@ import {
   UserInvestmentValuesOutput,
 } from './schema/v1/user_investment_values';
 import { MeInput, MeOutput } from './schema/v1/me';
+import { logger } from './logger';
 
 export class Api {
   readonly #axiosApi: AxiosInstance;
@@ -222,6 +223,17 @@ export class Api {
     type: z.ZodType<T>
   ): Promise<T> {
     const res = await axiosInstance.request(options);
+    const { baseURL } = axiosInstance.defaults;
+    const isSSO = baseURL?.indexOf('sso') !== -1;
+    logger.trace({
+      action: 'call',
+      isSSO,
+      code: res.status,
+      url: baseURL + (options.url ?? ''),
+      method: options.method,
+      type: type.description,
+      // data: res.data,
+    });
 
     try {
       const output = await type.parseAsync(res.data);

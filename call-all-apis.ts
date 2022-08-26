@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import axios, { AxiosError } from 'axios';
 import 'dotenv/config';
+import { logger } from './src/logger';
 import { Api } from './src';
 
 const { USERNAME, PASSWORD } = process.env;
@@ -13,15 +14,16 @@ if (PASSWORD === undefined) {
 
 function handleError(err: AxiosError | Error) {
   if (axios.isAxiosError(err)) {
-    console.error(
-      err.code,
-      err.config.baseURL && err.config.url ? err.config.baseURL + err.config.url : '',
-      err.response?.data
-    );
+    logger.error({
+      message: err.message,
+      code: err.code,
+      url: err.config.baseURL && err.config.url ? err.config.baseURL + err.config.url : '',
+      data: err.response?.data,
+    });
     return;
   }
 
-  console.error('unknown error', err);
+  logger.error('unknown error', err);
 }
 
 async function parseKYCS(
@@ -46,7 +48,10 @@ async function parseKYCS(
 (async () => {
   const api = new Api();
 
-  console.warn('login as', USERNAME);
+  logger.warn({
+    action: 'login',
+    username: USERNAME,
+  });
   const { access_token: token } = await api.login({ username: USERNAME, password: PASSWORD });
   const user = await api.getMe({ token });
 
@@ -64,11 +69,11 @@ async function parseKYCS(
   try {
     const advices = await parseKYCS(token, api, kycs);
     if (!advices) {
-      console.warn('No advices found');
+      logger.warn('No advices found');
     }
 
     if (!user.investmentAccounts) {
-      console.error('no investmentAccounts found', user.firstname);
+      logger.error('no investmentAccounts found', user.firstname);
       return;
     }
 
@@ -77,10 +82,11 @@ async function parseKYCS(
     );
 
     if (!activeInvestmentAccounts.length) {
-      console.error('No active investment accounts found');
+      logger.error('No active investment accounts found');
       return;
     }
 
+    // below is denied for inactive investment accounts
     const availableProducts = await Promise.all(
       userKycs['hydra:member'].map(({ id }) =>
         api.getAvailableProducts({ token, userKycsId: parseInt(id, 10) })
@@ -92,17 +98,20 @@ async function parseKYCS(
         api.getUserFinancialCapital({ token, userInvestmentAccountId: parseInt(id, 10) })
       )
     );
+
     const userInvestmentValuesInput = await Promise.all(
       activeInvestmentAccounts.map(({ id }) =>
         api.getUserInvestmentValuesInput({ token, userInvestmentAccountId: parseInt(id, 10) })
       )
     );
+
     const userInvestmentAccountProducts = await Promise.all(
       activeInvestmentAccounts.map(({ id }) =>
         api.getUserInvestmentAccountProducts({ token, userInvestmentAccountId: parseInt(id, 10) })
       )
     );
-    console.log({
+
+    logger.info({
       investProfileCategories,
       investProfiles,
       user,
@@ -121,9 +130,9 @@ async function parseKYCS(
       return;
     }
 
-    console.error('Error while calling apis', err);
+    logger.error('Error while calling apis', err);
   }
 })().catch((e) => {
-  console.error(e);
+  logger.error(e);
   process.exit(-1);
 });
