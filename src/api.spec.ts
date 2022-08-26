@@ -1027,12 +1027,12 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getUserInvestmentAccount(input);
-      if (isExternalError(response)) {
+      if (isGatewayError(response)) {
+        expect(typeof response === 'string');
+      } else if (isExternalError(response)) {
         expect(response).toHaveProperty('detail');
         expect(response).toHaveProperty('title');
         expect(response).toHaveProperty('type');
-      } else if (isGatewayError(response)) {
-        expect(typeof response === 'string');
       } else {
         expect(response).toHaveProperty('status');
         expect(response).toHaveProperty('uuid');
