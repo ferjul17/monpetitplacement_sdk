@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
+// eslint-disable-next-line import/no-extraneous-dependencies
 import prompt from 'prompt';
 import 'dotenv/config';
 
-import { logger } from './src/logger';
+import { logger } from './logger';
 
 import { Api } from './src';
 import { isExternalError } from './src/errors';
