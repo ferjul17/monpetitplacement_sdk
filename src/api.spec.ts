@@ -51,7 +51,7 @@ import {
   GetConsultingAnalysisInput,
 } from './schema/v1/consulting_analysis';
 import { GetInvestProfileInput, GetInvestProfileOutput } from './schema/v1/public_invest_profile';
-import { isExternalError } from './errors';
+import { isExternalError, isGatewayError } from './errors';
 
 const mockAgent: MockAgent = new MockAgent({});
 setGlobalDispatcher(mockAgent);
@@ -1031,6 +1031,8 @@ describe('Api', () => {
         expect(response).toHaveProperty('detail');
         expect(response).toHaveProperty('title');
         expect(response).toHaveProperty('type');
+      } else if (isGatewayError(response)) {
+        expect(typeof response === 'string');
       } else {
         expect(response).toHaveProperty('status');
         expect(response).toHaveProperty('uuid');
