@@ -1,5 +1,4 @@
 /* eslint-disable import/no-extraneous-dependencies */
-/* eslint-disable no-console */
 import prompt from 'prompt';
 import 'dotenv/config';
 
