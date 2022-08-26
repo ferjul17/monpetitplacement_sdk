@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const UserInvestmentAccountInput = z.object({
-  investmentAccountId: z.string(),
+  userInvestmentAccountId: z.string(),
   token: z.string(),
 });
 

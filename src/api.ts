@@ -294,14 +294,14 @@ export class Api {
 
   public async getUserInvestmentAccount({
     token,
-    investmentAccountId,
+    userInvestmentAccountId,
   }: z.infer<typeof UserInvestmentAccountInput>): Promise<
     z.infer<typeof UserInvestmentAccountOutput>
   > {
     return this.#callApi(
       {
         method: 'GET',
-        url: `v1/user_investment_accounts/${investmentAccountId}`,
+        url: `v1/user_investment_accounts/${userInvestmentAccountId}`,
         headers: { Authorization: `Bearer ${token}` },
       },
       UserInvestmentAccountOutput

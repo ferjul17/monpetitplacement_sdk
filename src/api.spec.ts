@@ -38,6 +38,15 @@ import {
   UserAdviceDTOOutput,
 } from './schema/v1/user_investment_account_advice_dto';
 import { UserKycCategoryInput, UserKycCategoryOutput } from './schema/v1/user_kyc_categories';
+import {
+  UserInvestmentAccountProvidersInput,
+  UserInvestmentAccountProvidersOutput,
+} from './schema/v1/user_investment_account_providers';
+import { UserKycQuestionsInput, UserKycQuestionsOutput } from './schema/v1/user_kyc_questions';
+import {
+  UserInvestmentAccountInput,
+  UserInvestmentAccountOutput,
+} from './schema/v1/user_investment_account';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -647,7 +656,7 @@ describe('Api', () => {
                   dici: '',
                   isin: faker.finance.iban(),
                   slug: faker.lorem.slug(),
-                  name: faker.commerce.product(),
+                  name: faker.company.name(),
                   percent: faker.datatype.number(100),
                   amount: faker.datatype.number(),
                   type: 'fund',
@@ -692,7 +701,7 @@ describe('Api', () => {
                   dici: '',
                   isin: faker.finance.iban(),
                   slug: faker.lorem.slug(),
-                  name: faker.commerce.product(),
+                  name: faker.company.name(),
                   percent: faker.datatype.number(100),
                   amount: faker.datatype.number(),
                   type: 'fund',
@@ -769,32 +778,172 @@ describe('Api', () => {
   describe('getKycQuestions', () => {
     it('calls the api with the right parameters', async () => {
       const sdk = new Api();
-      const input: z.infer<typeof AdviceWaitingVideoInput> = {
+      const input: z.infer<typeof UserKycQuestionsInput> = {
         token: faker.datatype.string(100),
+        provider: faker.commerce.product(),
       };
-      const mockedResponse: z.infer<typeof AdviceWaitingVideoOutput> = {
-        key: faker.lorem.slug(),
-        readable: true,
-        value: {
-          videoId: faker.datatype.number(),
-        },
+      const mockedResponse: z.infer<typeof UserKycQuestionsOutput> = {
+        '@context': '/v1/contexts/KycQuestion',
+        '@id': '/v1/investment_account_providers/generali/kyc_questions',
+        '@type': 'hydra:Collection',
+        'hydra:member': [
+          {
+            '@id': '/v1/kyc_questions/123',
+            '@type': 'KycQuestion',
+            id: faker.random.numeric(3),
+            position: faker.random.numeric(),
+            type: 'custom',
+            seconds: faker.random.numeric(),
+            identifier: faker.lorem.slug(),
+            options: null,
+            isSubQuestion: faker.datatype.boolean(),
+            postAnswer: faker.datatype.boolean(),
+            currentStepToPatch: faker.lorem.slug(),
+            previousQuestion: faker.lorem.slug(),
+            nextQuestion: {
+              default: faker.lorem.slug(),
+              provider: { generali: faker.lorem.slug() },
+            },
+            category: '/v1/kyc_categories/22',
+            parentAnswer: null,
+            answers: [],
+            name: faker.lorem.lines(4),
+            slug: faker.lorem.slug(1),
+            uuid: faker.datatype.uuid(),
+            createdAt: faker.datatype.string(),
+            updatedAt: faker.datatype.string(),
+          },
+          {
+            '@id': '/v1/kyc_questions/123',
+            '@type': 'KycQuestion',
+            id: faker.random.numeric(3),
+            position: '5',
+            type: 'checkbox',
+            seconds: '0',
+            identifier: faker.lorem.slug(3),
+            options: {
+              subtitle: faker.lorem.lines(3),
+            },
+            isSubQuestion: faker.datatype.boolean(),
+            postAnswer: faker.datatype.boolean(),
+            currentStepToPatch: faker.lorem.slug(3),
+            previousQuestion: faker.lorem.slug(3),
+            nextQuestion: { default: faker.lorem.slug(3) },
+            category: '/v1/kyc_categories/22',
+            parentAnswer: null,
+            answers: [
+              {
+                '@id': '/v1/kyc_answers/123',
+                '@type': 'KycAnswer',
+                id: faker.random.numeric(3),
+                position: '1',
+                value: null,
+                score: null,
+                identifier: faker.lorem.slug(),
+                options: null,
+                name: faker.lorem.word(),
+                uuid: faker.datatype.uuid(),
+                createdAt: faker.datatype.string(),
+                updatedAt: faker.datatype.string(),
+              },
+            ],
+            name: faker.lorem.text(),
+            slug: faker.lorem.slug(),
+            uuid: faker.datatype.uuid(),
+            createdAt: faker.datatype.string(),
+            updatedAt: faker.datatype.string(),
+          },
+        ],
+        'hydra:totalItems': 21,
       };
       mockAxios.onGet().reply(200, mockedResponse);
 
-      const response = await sdk.getAdviceWaitingVideo(input);
+      const response = await sdk.getKycQuestions(input);
 
       expect(response).toEqual(mockedResponse);
       expect(mockAxios.history.get.length).toBe(1);
       expect(mockAxios.history.get[0]).toEqual(
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
-          url: `v1/settings/advice-waiting-video.json`,
+          url: `v1/investment_account_providers/${input.provider}/kyc_questions`,
+        })
+      );
+    });
+  });
+
+  describe('getUserInvestmentAccountProviders', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof UserInvestmentAccountProvidersInput> = {
+        token: faker.datatype.string(100),
+        provider: faker.company.name(),
+      };
+      const mockedResponse: z.infer<typeof UserInvestmentAccountProvidersOutput> = {
+        '@context': '/v1/contexts/InvestmentAccountProvider',
+        '@id': '/v1/investment_account_providers/generali',
+        '@type': 'InvestmentAccountProvider',
+        id: faker.random.numeric(),
+        name: faker.company.name(),
+        slug: faker.lorem.slug(),
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getUserInvestmentAccountProviders(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/investment_account_providers/${input.provider}`,
+        })
+      );
+    });
+  });
+
+  describe('getUserInvestmentAccount', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof UserInvestmentAccountInput> = {
+        token: faker.datatype.string(100),
+        userInvestmentAccountId: faker.datatype.string(),
+      };
+      const mockedResponse: z.infer<typeof UserInvestmentAccountOutput> = {
+        '@context': '/v1/contexts/UserInvestmentAccount',
+        '@id': '/v1/user_investment_accounts/131496',
+        '@type': 'UserInvestmentAccount',
+        id: '131496',
+        status: faker.helpers.arrayElement(['pending']),
+        watermark: faker.datatype.number(2),
+        incompatible: faker.datatype.boolean(),
+        appointmentRequired: false,
+        provider: '/v1/investment_account_providers/generali',
+        user: '/v1/users/123456',
+        userKycs: ['/v1/user_kycs/123456'],
+        hidden: faker.datatype.boolean(),
+        duration: 5,
+        advice: ['/v1/advice/123456'],
+        userInvestmentAccountCallBack: [],
+        uuid: faker.datatype.uuid(),
+        createdAt: faker.datatype.string(),
+        updatedAt: faker.datatype.string(),
+        userKyc: '/v1/user_kycs/12345',
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getUserInvestmentAccount(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/user_investment_accounts/${input.userInvestmentAccountId}`,
         })
       );
     });
   });
 
   // TODO XXX: add tests for
-  // - getUserInvestmentAccountProviders
   // - getUserInvestmentAccount
 });
