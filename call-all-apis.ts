@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
 import prompt from 'prompt';
-import axios, { AxiosError } from 'axios';
 import 'dotenv/config';
 
 import { logger } from './src/logger';
 
 import { Api } from './src';
+import { MPPError } from './src/errors';
 
 const { USERNAME, PASSWORD } = process.env;
 if (USERNAME === undefined) {
@@ -15,22 +15,21 @@ if (PASSWORD === undefined) {
   throw new Error(`Missing en var "password".`);
 }
 
-function handleRemoteError(err: AxiosError | Error) {
-  if (axios.isAxiosError(err)) {
-    logger.error({
-      message: err.message,
-      code: err.code,
-      url: err.config.baseURL && err.config.url ? err.config.baseURL + err.config.url : '',
-      data: err.response?.data,
-    });
-    return;
-  }
-
+function handleRemoteError(err: Error) {
   logger.error({ message: 'unknown error', err });
 }
 
+function isMPPError(err: unknown): err is MPPError {
+  return !!((err as MPPError).description && (err as MPPError).error);
+}
+
 function defaultHandler(err: unknown) {
-  if (err instanceof Error || err instanceof AxiosError) {
+  if (err instanceof Error) {
+    handleRemoteError(err);
+    return;
+  }
+
+  if (isMPPError(err)) {
     handleRemoteError(err);
     return;
   }

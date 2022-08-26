@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { MockAgent, setGlobalDispatcher } from 'undici';
 import { z, ZodError } from 'zod';
-import { Api, baseURLForFacade } from './api';
+import { Api, baseURLForFacade, RemoteError } from './api';
 import { UserKycsInput, UserKycsOutput } from './schema/v1/user_kycs';
 import {
   AdviceInput,
@@ -52,19 +52,14 @@ import {
 } from './schema/v1/consulting_analysis';
 import { GetInvestProfileInput, GetInvestProfileOutput } from './schema/v1/public_invest_profile';
 
-const { USERNAME, PASSWORD } = {
-  USERNAME: 'leonard@mimisiku.dev',
-  PASSWORD: '#6A*YftW#^hJVwZ$uvzpjTNuTYBV3W',
-};
-if (USERNAME === undefined) {
-  throw new Error(`Missing env var "username".`);
-}
-if (PASSWORD === undefined) {
-  throw new Error(`Missing env var "password".`);
-}
-
 describe('Api', () => {
-  const mockAgent: MockAgent = new MockAgent();
+  it('should throw when facade unknown', () => {
+    expect(baseURLForFacade('miaow' as any)).toBeInstanceOf(Error);
+  });
+
+  const mockAgent: MockAgent = new MockAgent({
+    // connections: 2,
+  });
   setGlobalDispatcher(mockAgent);
 
   let mockPool = mockAgent.get(baseURLForFacade('sso'));
@@ -76,7 +71,14 @@ describe('Api', () => {
       method: 'POST',
     });
 
-    await expect(sdk.login({ username: '', password: '' })).rejects.toEqual(expect.any(ZodError));
+    await expect(sdk.login({ username: '', password: '' })).rejects.toEqual(
+      expect.any(ZodError).or(
+        expect.objectContaining({
+          error: 'invalid_grant',
+          error_description: 'Invalid user credentials',
+        })
+      )
+    );
   });
 
   describe('login', () => {
@@ -84,8 +86,8 @@ describe('Api', () => {
       const sdk = new Api();
 
       const creds = {
-        username: USERNAME,
-        password: PASSWORD,
+        username: faker.internet.email(),
+        password: faker.internet.password(),
       };
       const data = new URLSearchParams();
       data.set('grant_type', 'password');
@@ -93,7 +95,7 @@ describe('Api', () => {
       data.set('username', creds.username);
       data.set('password', creds.password);
 
-      const mockedResponse: Partial<z.infer<typeof AuthenticationTokenOutput>> = {
+      const mockedResponse: Partial<z.infer<typeof AuthenticationTokenOutput> | RemoteError> = {
         // access_token: faker.datatype.string(100),
         expires_in: 300,
         'not-before-policy': 0,
@@ -115,9 +117,6 @@ describe('Api', () => {
 
       expect({
         ...response,
-        access_token: undefined,
-        refresh_token: undefined,
-        session_state: undefined,
       }).toMatchObject(mockedResponse);
     });
   });
