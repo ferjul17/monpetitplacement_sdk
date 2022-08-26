@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+// Really interesting type ;)
 export const UserAdviceInvestmentFund = z.object({
   '@context': z.object({
     '@vocab': z.string(),
