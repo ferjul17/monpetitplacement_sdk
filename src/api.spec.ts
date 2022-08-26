@@ -4,7 +4,12 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import { z, ZodError } from 'zod';
 import { Api } from './api';
 import { UserKycsInput, UserKycsOutput } from './schema/v1/user_kycs';
-import { AdviceInput, AdviceOutput } from './schema/v1/advice';
+import {
+  AdviceInput,
+  AdviceOutput,
+  AdviceWaitingVideoInput,
+  AdviceWaitingVideoOutput,
+} from './schema/v1/advice';
 import {
   InvestProfileCategoriesInput,
   InvestProfileCategoriesOutput,
@@ -27,6 +32,12 @@ import {
 } from './schema/v1/user_investment_values';
 import { MeInput, MeOutput } from './schema/v1/me';
 import { AuthenticationTokenOutput } from './schema/authentication-token';
+import { MPPTwitchInput, MPPTwitchOutput } from './schema/v1/twitch';
+import {
+  UserAdviceDTOInput,
+  UserAdviceDTOOutput,
+} from './schema/v1/user_investment_account_advice_dto';
+import { UserKycCategoryInput, UserKycCategoryOutput } from './schema/v1/user_kyc_categories';
 
 describe('Api', () => {
   let mockAxios: AxiosMockAdapter;
@@ -500,12 +511,290 @@ describe('Api', () => {
     });
   });
 
+  describe('getTwitch', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof MPPTwitchInput> = {
+        token: faker.datatype.string(100),
+      };
+      const mockedResponse: z.infer<typeof MPPTwitchOutput> = {
+        key: 'twitch',
+        readable: faker.datatype.boolean(),
+        value: {
+          isLive: faker.datatype.boolean(),
+        },
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getTwitch(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/settings/twitch.json`,
+        })
+      );
+    });
+  });
+
+  describe('getAdviceWaitingVideo', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof AdviceWaitingVideoInput> = {
+        token: faker.datatype.string(100),
+      };
+      const mockedResponse: z.infer<typeof AdviceWaitingVideoOutput> = {
+        key: 'advice-waiting-video',
+        readable: faker.datatype.boolean(),
+        value: {
+          videoId: faker.datatype.number(),
+        },
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getAdviceWaitingVideo(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/settings/advice-waiting-video.json`,
+        })
+      );
+    });
+  });
+
+  describe('getAdviceDTO', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof UserAdviceDTOInput> = {
+        token: faker.datatype.string(100),
+        userInvestmentAccountId: faker.datatype.number(),
+      };
+      const mockedResponse: z.infer<typeof UserAdviceDTOOutput> = {
+        '@context': {
+          '@vocab': 'https://api.monpetitplacement.fr/v1/docs.jsonld#',
+          hydra: 'http://www.w3.org/ns/hydra/core#',
+          provider: 'AdviceDto/provider',
+          advisor: 'AdviceDto/advisor',
+          mppChoice: 'AdviceDto/mppChoice',
+          userChoice: 'AdviceDto/userChoice',
+          video: 'AdviceDto/video',
+          introVideoLinkProvided: 'AdviceDto/introVideoLinkProvided',
+          adviceId: 'AdviceDto/adviceId',
+        },
+        '@type': 'UserInvestmentAccount',
+        '@id': `/v1/user_investment_accounts/${input.userInvestmentAccountId}`,
+        provider: '/v1/investment_account_providers/generali',
+        advisor: {
+          '@context': '/v1/contexts/User',
+          '@id': '/v1/users/12345',
+          '@type': 'User',
+          firstname: faker.name.firstName(),
+          lastname: faker.name.lastName(),
+          calendlyCalendarUrl: faker.internet.url(),
+        },
+        mppChoice: {
+          '@context': {
+            '@vocab': 'https://api.monpetitplacement.fr/v1/docs.jsonld#',
+            hydra: 'http://www.w3.org/ns/hydra/core#',
+            initialAmount: 'AdviceStrategyDto/initialAmount',
+            monthlyAmount: 'AdviceStrategyDto/monthlyAmount',
+            splitDuration: 'AdviceStrategyDto/splitDuration',
+            initialDistribution: 'AdviceStrategyDto/initialDistribution',
+            monthlyDistribution: 'AdviceStrategyDto/monthlyDistribution',
+            trustLevel: 'AdviceStrategyDto/trustLevel',
+            automatic: 'AdviceStrategyDto/automatic',
+            inconsistent: 'AdviceStrategyDto/inconsistent',
+          },
+          '@type': 'AdviceStrategyDto',
+          '@id': '_:2312',
+          initialAmount: faker.datatype.number(),
+          monthlyAmount: faker.datatype.number(),
+          splitDuration: faker.datatype.number(),
+          initialDistribution: [
+            {
+              '@context': {
+                '@vocab': 'https://api.monpetitplacement.fr/v1/docs.jsonld#',
+                hydra: 'http://www.w3.org/ns/hydra/core#',
+                funds: 'FundGroup/funds',
+                slug: 'FundGroup/slug',
+                name: 'FundGroup/name',
+                percent: 'FundGroup/percent',
+                amount: 'FundGroup/amount',
+                type: 'FundGroup/type',
+              },
+              '@type': 'FundGroup',
+              '@id': '_:1234',
+              funds: [
+                {
+                  '@context': {
+                    '@vocab': 'https://api.monpetitplacement.fr/v1/docs.jsonld#',
+                    hydra: 'http://www.w3.org/ns/hydra/core#',
+                    dici: 'Fund/dici',
+                    isin: 'Fund/isin',
+                    slug: 'Fund/slug',
+                    name: 'Fund/name',
+                    percent: 'Fund/percent',
+                    amount: 'Fund/amount',
+                    type: 'Fund/type',
+                  },
+                  '@type': 'Fund',
+                  '@id': '_:1234',
+                  dici: '',
+                  isin: faker.finance.iban(),
+                  slug: faker.lorem.slug(),
+                  name: faker.commerce.product(),
+                  percent: faker.datatype.number(100),
+                  amount: faker.datatype.number(),
+                  type: 'fund',
+                },
+              ],
+              slug: faker.lorem.slug(),
+              name: faker.lorem.word(),
+              percent: faker.datatype.number(),
+              amount: faker.datatype.number(),
+              type: 'fund_group',
+            },
+          ],
+          monthlyDistribution: [
+            {
+              '@context': {
+                '@vocab': 'https://api.monpetitplacement.fr/v1/docs.jsonld#',
+                hydra: 'http://www.w3.org/ns/hydra/core#',
+                funds: 'FundGroup/funds',
+                slug: 'FundGroup/slug',
+                name: 'FundGroup/name',
+                percent: 'FundGroup/percent',
+                amount: 'FundGroup/amount',
+                type: 'FundGroup/type',
+              },
+              '@type': 'FundGroup',
+              '@id': '_:1234',
+              funds: [
+                {
+                  '@context': {
+                    '@vocab': 'https://api.monpetitplacement.fr/v1/docs.jsonld#',
+                    hydra: 'http://www.w3.org/ns/hydra/core#',
+                    dici: 'Fund/dici',
+                    isin: 'Fund/isin',
+                    slug: 'Fund/slug',
+                    name: 'Fund/name',
+                    percent: 'Fund/percent',
+                    amount: 'Fund/amount',
+                    type: 'Fund/type',
+                  },
+                  '@type': 'Fund',
+                  '@id': '_:2534',
+                  dici: '',
+                  isin: faker.finance.iban(),
+                  slug: faker.lorem.slug(),
+                  name: faker.commerce.product(),
+                  percent: faker.datatype.number(100),
+                  amount: faker.datatype.number(),
+                  type: 'fund',
+                },
+              ],
+              slug: faker.lorem.slug(),
+              name: faker.lorem.word(),
+              percent: faker.datatype.number(),
+              amount: faker.datatype.number(),
+              type: 'fund_group',
+            },
+          ],
+          automatic: faker.datatype.boolean(),
+          inconsistent: faker.datatype.boolean(),
+        },
+        introVideoLinkProvided: faker.datatype.boolean(),
+        adviceId: faker.datatype.string(),
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getAdviceDTO(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/user_investment_accounts/${input.userInvestmentAccountId}/advice_dto`,
+        })
+      );
+    });
+  });
+
+  describe('getKycCategories', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof UserKycCategoryInput> = {
+        token: faker.datatype.string(100),
+      };
+      const mockedResponse: z.infer<typeof UserKycCategoryOutput> = {
+        '@context': '/v1/contexts/KycCategory',
+        '@id': '/v1/kyc_categories',
+        '@type': 'hydra:Collection',
+        'hydra:member': [
+          {
+            '@id': '/v1/kyc_categories/1',
+            '@type': 'KycCategory',
+            id: '1',
+            name: faker.lorem.lines(),
+            slug: faker.lorem.slug(),
+            position: faker.datatype.string(),
+            uuid: faker.datatype.uuid(),
+            createdAt: faker.datatype.string(),
+            updatedAt: faker.datatype.string(),
+          },
+        ],
+        'hydra:totalItems': 1,
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getKycCategories(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/kyc_categories`,
+        })
+      );
+    });
+  });
+
+  describe('getKycQuestions', () => {
+    it('calls the api with the right parameters', async () => {
+      const sdk = new Api();
+      const input: z.infer<typeof AdviceWaitingVideoInput> = {
+        token: faker.datatype.string(100),
+      };
+      const mockedResponse: z.infer<typeof AdviceWaitingVideoOutput> = {
+        key: faker.lorem.slug(),
+        readable: true,
+        value: {
+          videoId: faker.datatype.number(),
+        },
+      };
+      mockAxios.onGet().reply(200, mockedResponse);
+
+      const response = await sdk.getAdviceWaitingVideo(input);
+
+      expect(response).toEqual(mockedResponse);
+      expect(mockAxios.history.get.length).toBe(1);
+      expect(mockAxios.history.get[0]).toEqual(
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: `Bearer ${input.token}` }),
+          url: `v1/settings/advice-waiting-video.json`,
+        })
+      );
+    });
+  });
+
   // TODO XXX: add tests for
-  // - getTwitch (or no?)
-  // - getAdviceWaitingVideo (or no?)
-  // - getAdviceDTO
-  // - getKycQuestions
-  // - getKycCategories
   // - getUserInvestmentAccountProviders
   // - getUserInvestmentAccount
 });

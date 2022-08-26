@@ -26,7 +26,7 @@ export const UserAdviceInvestmentFund = z.object({
 
 export const UserAdviceDTOInput = z.object({
   token: z.string(),
-  userInvestmentAccountId: z.string(),
+  userInvestmentAccountId: z.number(),
 });
 
 export const UserAdviceDTOOutput = z.object({

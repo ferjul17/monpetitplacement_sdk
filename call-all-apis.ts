@@ -70,7 +70,7 @@ function defaultHandler(err: unknown) {
   const advicesDTO = await Promise.all(
     user.investmentAccounts?.map((investmentAccount) => {
       return api
-        .getAdviceDTO({ token, userInvestmentAccountId: investmentAccount.id })
+        .getAdviceDTO({ token, userInvestmentAccountId: parseInt(investmentAccount.id, 10) })
         .then((dto) => {
           const initialDistribution = dto.mppChoice.initialDistribution[0];
           const monthlyDistribution = dto.mppChoice.monthlyDistribution[0];

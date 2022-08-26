@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const MPPTwitchInput = z.object({
   token: z.string(),
-  provider: z.string(),
 });
 
 export const MPPTwitchOutput = z.object({
