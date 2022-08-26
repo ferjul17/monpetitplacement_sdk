@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { z } from 'zod';
 
-import { logger } from './logger';
+// import { logger } from './logger';
 
 import { AuthenticationTokenInput, AuthenticationTokenOutput } from './schema/authentication-token';
 import { UserKycsInput, UserKycsOutput } from './schema/v1/user_kycs';
@@ -344,6 +344,7 @@ export class Api {
     type: z.ZodType<T>
   ): Promise<T> {
     const res = await axiosInstance.request(options);
+    /* 
     const { baseURL } = axiosInstance.defaults;
     const isSSO = baseURL?.indexOf('sso') !== -1;
     logger.trace({
@@ -354,7 +355,7 @@ export class Api {
       method: options.method,
       type: type.description,
       // data: res.data,
-    });
+    }); */
 
     try {
       const output = await type.parseAsync(res.data);

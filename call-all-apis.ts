@@ -47,17 +47,13 @@ function defaultHandler(err: unknown) {
 (async () => {
   const api = new Api();
 
-  logger.warn({
-    action: 'login',
-    username: USERNAME,
-  });
   const { access_token: token } = await api.login({ username: USERNAME, password: PASSWORD });
   const user = await api.getMe({ token });
 
   logger.warn({
     action: 'login',
     username: USERNAME,
-    user,
+    // user,
   });
 
   const userId = user.id;
@@ -90,9 +86,43 @@ function defaultHandler(err: unknown) {
     })
   );
 
-  logger.warn({
-    action: 'advicesDTOPerInvestmentAccount',
-    ...advicesDTO,
+  advicesDTO.forEach(function showMppChoice(dto) {
+    const initialDistribution = dto.mppChoice.initialDistribution[0];
+    const monthlyDistribution = dto.mppChoice.monthlyDistribution[0];
+    logger.warn({
+      log: 'initial distribution per funds',
+      advisor: `${dto.advisor.firstname} ${dto.advisor.lastname}`,
+      mppChoice: {
+        initialAmount: dto.mppChoice.initialAmount,
+        initialDistribution: {
+          name: initialDistribution.name,
+          amount: initialDistribution.amount,
+          funds: initialDistribution.funds.map((fund) => {
+            return {
+              amount: fund.amount,
+              isin: fund.isin,
+              name: fund.name,
+              percent: fund.percent,
+              slug: fund.slug,
+            };
+          }),
+          monthlyAmount: monthlyDistribution.amount,
+          monthlyDistribution: {
+            name: monthlyDistribution.name,
+            percent: monthlyDistribution.percent,
+            funds: initialDistribution.funds.map((fund) => {
+              return {
+                amount: fund.amount,
+                isin: fund.isin,
+                name: fund.name,
+                percent: fund.percent,
+                slug: fund.slug,
+              };
+            }),
+          },
+        },
+      },
+    });
   });
 
   const activeInvestmentAccounts = user.investmentAccounts.filter(
@@ -102,14 +132,14 @@ function defaultHandler(err: unknown) {
   if (!activeInvestmentAccounts.length) {
     logger.error({
       message: 'No active investment accounts found',
-      investmentAccounts: user.investmentAccounts,
+      // investmentAccounts: user.investmentAccounts,
     });
     return;
   }
 
   logger.info({
     message: 'got these active investment accounts',
-    activeInvestmentAccounts,
+    // activeInvestmentAccounts,
   });
 
   // below is denied for inactive investment accounts
