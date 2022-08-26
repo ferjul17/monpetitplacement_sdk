@@ -81,6 +81,7 @@ function defaultHandler(err: unknown) {
               initialAmount: dto.mppChoice.initialAmount,
               initialDistribution: {
                 name: initialDistribution.name,
+                percent: initialDistribution.percent,
                 amount: initialDistribution.amount,
                 funds: initialDistribution.funds.map((fund) => {
                   return {
@@ -95,6 +96,7 @@ function defaultHandler(err: unknown) {
                 monthlyDistribution: {
                   name: monthlyDistribution.name,
                   percent: monthlyDistribution.percent,
+                  amount: monthlyDistribution.amount,
                   funds: initialDistribution.funds.map((fund) => {
                     return {
                       amount: fund.amount,
@@ -113,6 +115,8 @@ function defaultHandler(err: unknown) {
         });
     })
   );
+
+
 
   // Below doesn't work if no strategy in account
   const advices = await Promise.all(
