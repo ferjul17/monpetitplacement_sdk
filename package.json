@@ -27,7 +27,7 @@
     "directory": "lib"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "@m1m1s1ku:registry": "https://npm.pkg.github.com"
   },
   "keywords": [],
   "author": "Julien Ferrier <npm-package-monpetitplacement_sdk@ferrier.email>",
