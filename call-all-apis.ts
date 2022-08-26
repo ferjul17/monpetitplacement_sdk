@@ -90,9 +90,14 @@ function defaultHandler(err: unknown) {
   );
 
   if (!activeInvestmentAccounts.length) {
-    logger.error('No active investment accounts found');
+    logger.error({
+      message: 'No active investment accounts found',
+      investmentAccounts: user.investmentAccounts,
+    });
     return;
   }
+
+  logger.info('got these active investment accounts', activeInvestmentAccounts);
 
   // below is denied for inactive investment accounts
   const availableProducts = await Promise.all(
