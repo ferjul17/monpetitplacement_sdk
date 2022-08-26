@@ -1,11 +1,6 @@
-export class MPPError extends Error {
-  error: string;
+import { z } from 'zod';
 
-  description: string;
-
-  constructor(error: string, description: string) {
-    super(error);
-    this.error = error;
-    this.description = description;
-  }
-}
+export const MPPError = z.object({
+  error: z.string(),
+  error_description: z.string(),
+});

@@ -54,7 +54,7 @@ import { GetInvestProfileInput, GetInvestProfileOutput } from './schema/v1/publi
 import { MPPError } from './errors/mpp_error';
 import { TokenError } from './errors/token_error';
 
-export type RemoteError = MPPError | TokenError;
+export type RemoteError = z.infer<typeof MPPError> | z.infer<typeof TokenError>;
 
 const kApiBaseURL = 'https://api.monpetitplacement.fr/';
 const kSsoBaseURL = 'https://sso.monpetitplacement.fr/';
@@ -62,7 +62,12 @@ const kPublicBaseURL = 'https://www.monpetitplacement.fr/';
 
 type MPPFacade = 'api' | 'sso' | 'public';
 
+/**
+ * @throws {Error}
+ */
+// eslint-disable-next-line consistent-return
 export function baseURLForFacade(facade: MPPFacade): string {
+  // eslint-disable-next-line default-case
   switch (facade) {
     case 'api':
       return kApiBaseURL;
@@ -70,8 +75,6 @@ export function baseURLForFacade(facade: MPPFacade): string {
       return kSsoBaseURL;
     case 'public':
       return kPublicBaseURL;
-    default:
-      throw new Error(`Unexpected facade ${facade}`);
   }
 }
 
@@ -497,7 +500,7 @@ export class Api {
     dispatcher?: MockClient
   ): Promise<T | RemoteError> {
     const stringBody = JSON.stringify(options.body);
-    const endpoint = baseURLForFacade(facade).concat(path);
+    const endpoint = baseURLForFacade(facade)!.concat(path);
     const res = await fetch(endpoint, {
       dispatcher,
       ...options,
@@ -509,7 +512,7 @@ export class Api {
       const output = await type.parseAsync(body);
       return output;
     } catch (err) {
-      const errorOutput = z.instanceof(MPPError).or(z.instanceof(TokenError));
+      const errorOutput = MPPError.or(TokenError);
       return errorOutput.parseAsync(body);
     }
   }

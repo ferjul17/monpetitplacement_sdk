@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { MockAgent, setGlobalDispatcher } from 'undici';
-import { z, ZodError } from 'zod';
+import { z } from 'zod';
 import { Api, baseURLForFacade, RemoteError } from './api';
 import { UserKycsInput, UserKycsOutput } from './schema/v1/user_kycs';
 import {
@@ -51,16 +51,13 @@ import {
   GetConsultingAnalysisInput,
 } from './schema/v1/consulting_analysis';
 import { GetInvestProfileInput, GetInvestProfileOutput } from './schema/v1/public_invest_profile';
+import { isExternalError } from './errors';
 
 const mockAgent: MockAgent = new MockAgent({});
 setGlobalDispatcher(mockAgent);
 let mockPool = mockAgent.get(baseURLForFacade('sso'));
 
 describe('Api', () => {
-  it('should throw when facade unknown', () => {
-    expect(baseURLForFacade('miaow' as any)).toThrow(Error);
-  });
-
   it('throws a ZodError in case the output does not match the expected interface', async () => {
     const sdk = new Api();
     mockPool.intercept({
@@ -68,14 +65,10 @@ describe('Api', () => {
       method: 'POST',
     });
 
-    expect(sdk.login({ username: '', password: '' })).toEqual(
-      expect.any(ZodError).or(
-        expect.objectContaining({
-          error: 'invalid_grant',
-          error_description: 'Invalid user credentials',
-        })
-      )
-    );
+    const loginError = await sdk.login({ username: '', password: '' });
+
+    expect(loginError).toHaveProperty('error');
+    expect(loginError).toHaveProperty('error_description');
   });
 
   describe('login', () => {
@@ -112,9 +105,12 @@ describe('Api', () => {
 
       const response = await sdk.login(creds);
 
-      expect({
-        ...response,
-      }).toMatchObject(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('error');
+        expect(response).toHaveProperty('error_description');
+      } else {
+        expect(response).toHaveProperty('access_token');
+      }
     });
   });
 
@@ -188,8 +184,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getMe(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('username');
+      }
     });
   });
 
@@ -217,8 +218,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getUserKycs(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -250,8 +256,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getUserCoupons(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -282,8 +293,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getCoupons(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -326,7 +342,13 @@ describe('Api', () => {
 
       const response = await sdk.getAdvice(input);
 
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('advisor');
+      }
     });
   });
 
@@ -356,8 +378,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getInvestProfileCategories(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -387,8 +414,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getInvestProfiles(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -425,8 +457,15 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getUserFinancialCapital(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('amount');
+        expect(response).toHaveProperty('performance');
+        expect(response).toHaveProperty('numberPendingOperations');
+      }
     });
   });
 
@@ -453,8 +492,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getUserInvestmentValuesInput(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -481,8 +525,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getAvailableProducts(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -518,8 +567,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getUserInvestmentAccountProducts(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -545,8 +599,15 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getTwitch(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('key');
+        expect(response).toHaveProperty('readable');
+        expect(response).toHaveProperty('value.isLive');
+      }
     });
   });
 
@@ -572,8 +633,15 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getAdviceWaitingVideo(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('key');
+        expect(response).toHaveProperty('readable');
+        expect(response).toHaveProperty('value.videoId');
+      }
     });
   });
 
@@ -733,8 +801,14 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getAdviceDTO(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('advisor');
+        expect(response).toHaveProperty('mppChoice');
+      }
     });
   });
 
@@ -772,8 +846,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getKycCategories(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -867,8 +946,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getKycQuestions(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -896,8 +980,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getUserInvestmentAccountProviders(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -938,8 +1027,14 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getUserInvestmentAccount(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('status');
+        expect(response).toHaveProperty('uuid');
+      }
     });
   });
 
@@ -979,8 +1074,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getInitialConsultingAnalysis(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('hydra:member');
+      }
     });
   });
 
@@ -1020,8 +1120,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getMonthlyConsultingAnalysis(input);
-
-      expect(response).toEqual(mockedResponse);
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response.length).toBeGreaterThan(0);
+      }
     });
   });
 
@@ -1049,8 +1154,13 @@ describe('Api', () => {
         .reply(200, mockedResponse);
 
       const response = await sdk.getInvestProfileHistory(input);
-
-      expect(response).toHaveProperty('history');
+      if (isExternalError(response)) {
+        expect(response).toHaveProperty('detail');
+        expect(response).toHaveProperty('title');
+        expect(response).toHaveProperty('type');
+      } else {
+        expect(response).toHaveProperty('history');
+      }
     });
   });
 });

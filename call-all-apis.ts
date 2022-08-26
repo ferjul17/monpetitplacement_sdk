@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
 import prompt from 'prompt';
 import 'dotenv/config';
+import { ZodError } from 'zod';
 
 import { logger } from './src/logger';
 
 import { Api } from './src';
-import { MPPError } from './src/errors/mpp_error';
-import { TokenError } from './src/errors/token_error';
 import { RemoteError } from './src/api';
+import { isExternalError } from './src/errors';
 
 const { USERNAME, PASSWORD } = process.env;
 if (USERNAME === undefined) {
@@ -17,38 +17,7 @@ if (PASSWORD === undefined) {
   throw new Error(`Missing en var "password".`);
 }
 
-function handleRemoteError(err: Error) {
-  logger.error({ message: 'unknown error', err });
-}
-
-function isMPPError(err: unknown): err is MPPError {
-  return !!((err as MPPError).description && (err as MPPError).error);
-}
-
-function isTokenError(err: unknown): err is TokenError {
-  return !!((err as TokenError).title && (err as TokenError).type);
-}
-
-function isExternalError(err: unknown): err is RemoteError {
-  return isMPPError(err) || isTokenError(err);
-}
-
-function defaultHandler(err: unknown) {
-  if (err instanceof Error) {
-    handleRemoteError(err);
-    return;
-  }
-
-  if (isMPPError(err)) {
-    handleRemoteError(err);
-    return;
-  }
-
-  if (isTokenError(err)) {
-    logger.fatal('token error', err);
-    return;
-  }
-
+function defaultHandler(err: RemoteError | ZodError) {
   logger.fatal(err);
 }
 

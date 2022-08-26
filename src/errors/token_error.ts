@@ -1,14 +1,7 @@
-export class TokenError extends Error {
-  type: string;
+import { z } from 'zod';
 
-  title: string;
-
-  detail: string;
-
-  constructor(type: string, title: string, detail: string) {
-    super(type);
-    this.type = type;
-    this.title = title;
-    this.detail = detail;
-  }
-}
+export const TokenError = z.object({
+  type: z.string(),
+  title: z.string(),
+  detail: z.string(),
+});
