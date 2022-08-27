@@ -442,18 +442,8 @@ export class Api {
         method: 'POST',
         body: null,
         headers: {
-          accept: 'application/json, text/plain, */*',
-          'accept-language': 'en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7',
-          'content-type': 'application/json;charset=utf-8',
-          'sec-ch-ua': '"Chromium";v="107", "Not=A?Brand";v="24"',
-          'sec-ch-ua-mobile': '?0',
-          'sec-ch-ua-platform': '"macOS"',
-          'sec-fetch-dest': 'empty',
-          'sec-fetch-mode': 'cors',
-          'sec-fetch-site': 'same-origin',
-          'x-requested-with': 'XMLHttpRequest',
-          Referer: 'https://www.monpetitplacement.fr/fr/portefeuilles/volontaire',
-          'Referrer-Policy': 'strict-origin-when-cross-origin',
+          'Content-Type': 'application/json',
+          accept: 'application/json, text/plain, */*'
         },
       },
       GetInvestProfileOutput
