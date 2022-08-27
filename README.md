@@ -7,7 +7,7 @@ This library is intended to provide you with an easy way to retrieve your data f
 It uses private API which may change and break this library at any moment.
 
 ![Tests](https://github.com/m1m1s1ku/monpetitplacement_sdk/actions/workflows/ci.yml/badge.svg)
-![badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/m1m1s1ku/2092672dc5df17bbd8a51d7f746b9b94/raw/999c1fdd1fae2c7680e774f4459877c0fc39ac64/jest-coverage-comment__main.json)
+![badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/m1m1s1ku/2092672dc5df17bbd8a51d7f746b9b94/raw/aaa7efdaab98523ba74eaf673be5bae3325d801e/jest-coverage-comment__main.json)
 
 ## Installation
 
