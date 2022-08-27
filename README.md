@@ -7,6 +7,8 @@ This library is intended to provide you with an easy way to retrieve your data f
 It uses private API which may change and break this library at any moment.
 
 ![Tests](https://github.com/m1m1s1ku/monpetitplacement_sdk/actions/workflows/ci.yml/badge.svg)
+![badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/m1m1s1ku/2092672dc5df17bbd8a51d7f746b9b94/raw/test.json)
+
 
 ## Installation
 
