@@ -14,9 +14,9 @@ It uses private API which may change and break this library at any moment.
 npm install @m1m1s1ku/monpetitplacement_sdk
 ```
 
-## Usage
+## Documentation
 
-TBD : Link to docs
+[Documentation](http://htmlpreview.github.io/?https://github.com/m1m1s1ku/monpetitplacement_sdk/blob/main/docs/index.html)
 
 ## Contributing
 
