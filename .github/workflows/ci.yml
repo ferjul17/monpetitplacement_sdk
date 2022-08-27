@@ -8,10 +8,10 @@ jobs:
       matrix:
         node: [16]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
       - uses: actions/cache@v2
@@ -22,6 +22,5 @@ jobs:
             ${{ runner.os }}-node-
       - run: npm ci
       - run: npm run build
-      - run: npm run lint
       - run: npx prettier . --check
       - run: npm test
