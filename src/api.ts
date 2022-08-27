@@ -443,7 +443,7 @@ export class Api {
         body: null,
         headers: {
           'Content-Type': 'application/json',
-          accept: 'application/json, text/plain, */*'
+          accept: 'application/json, text/plain, */*',
         },
       },
       GetInvestProfileOutput
