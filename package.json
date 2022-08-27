@@ -14,7 +14,8 @@
     "lib/"
   ],
   "scripts": {
-    "test": "jest",
+    "test": "npx jest",
+    "coverage": "npx jest --coverage --coverageReporters json-summary",
     "format": "prettier --write .",
     "prepare": "husky install",
     "build": "tsc -p tsconfig.build.json",
