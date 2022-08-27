@@ -18,6 +18,10 @@ npm install @m1m1s1ku/monpetitplacement_sdk
 
 [Documentation](https://m1m1s1ku.github.io/monpetitplacement_sdk/)
 
+## Usage
+
+[Example](https://github.com/m1m1s1ku/monpetitplacement_sdk/blob/main/call-all-apis.ts)
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
