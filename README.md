@@ -16,7 +16,7 @@ npm install @m1m1s1ku/monpetitplacement_sdk
 
 ## Documentation
 
-[Documentation](http://htmlpreview.github.io/?https://github.com/m1m1s1ku/monpetitplacement_sdk/blob/main/docs/index.html)
+[Documentation](https://m1m1s1ku.github.io/monpetitplacement_sdk/)
 
 ## Contributing
 
